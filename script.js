@@ -1,11 +1,28 @@
 import { auth } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-  }
-});
+const authBtn = document.getElementById('authBtn');
+
+if (authBtn) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authBtn.textContent = "Profile";
+    } else {
+      authBtn.textContent = "Login / Sign Up";
+    }
+  });
+
+  authBtn.addEventListener('click', () => {
+    const user = auth.currentUser;
+
+    if (user) {
+      window.location.href = "profile.html";
+    } else {
+      window.location.href = "login.html";
+    }
+  });
+}
+
 const generateBtn = document.getElementById('generate-btn');
 const inputCard = document.getElementById('input-card');
 const loadingState = document.getElementById('loading-state');
@@ -28,13 +45,23 @@ if (logoHome) {
         resultContainer.classList.add('hidden');
         loadingState.classList.add('hidden');
         inputCard.classList.remove('hidden');
-        headerSection.classList.remove('hidden');
+        headerSection.classList.remove('hidden');   
         window.scrollTo(0, 0);
     });
 }
 
 generateBtn.addEventListener('click', async () => {
-    const aim = document.getElementById('user-aim').value;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+  sessionStorage.setItem("postLoginAction", "generate");
+  window.location.href = "login.html";
+  return;
+}
+
+  // rest of your existing generate code below
+        const aim = document.getElementById('user-aim').value;
     const category = document.getElementById('category').value;
     const difficulty = document.getElementById('difficulty').value;
     const dueDate = document.getElementById('due-date').value;

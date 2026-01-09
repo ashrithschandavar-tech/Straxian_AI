@@ -11,19 +11,47 @@ const password = document.getElementById('password');
 
 document.getElementById('loginBtn').onclick = () => {
   signInWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => window.location.href = "index.html")
+    .then(() => {
+      const action = sessionStorage.getItem("postLoginAction");
+      sessionStorage.removeItem("postLoginAction");
+
+      if (action === "generate") {
+        window.location.href = "index.html?autoGenerate=true";
+      } else {
+        window.location.href = "index.html";
+      }
+    })
     .catch(err => alert(err.message));
 };
 
 document.getElementById('signupBtn').onclick = () => {
   createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => window.location.href = "index.html")
+    .then(() => {
+      const action = sessionStorage.getItem("postLoginAction");
+      sessionStorage.removeItem("postLoginAction");
+
+      if (action === "generate") {
+        window.location.href = "index.html?autoGenerate=true";
+      } else {
+        window.location.href = "index.html";
+      }
+    })
     .catch(err => alert(err.message));
 };
 
 document.getElementById('googleBtn').onclick = () => {
   const provider = new GoogleAuthProvider();
   signInWithPopup(auth, provider)
-    .then(() => window.location.href = "index.html")
+    .then(() => {
+      const action = sessionStorage.getItem("postLoginAction");
+      sessionStorage.removeItem("postLoginAction");
+
+      if (action === "generate") {
+        window.location.href = "index.html?autoGenerate=true";
+      } else {
+        window.location.href = "index.html";
+      }
+    })
     .catch(err => alert(err.message));
 };
+
