@@ -5,12 +5,15 @@ const authBtn = document.getElementById('authBtn');
 
 if (authBtn) {
   onAuthStateChanged(auth, (user) => {
-    if (user) {
-      authBtn.textContent = "Profile";
-    } else {
-      authBtn.textContent = "Login / Sign Up";
-    }
-  });
+  if (user) {
+    authBtn.textContent = "Profile";
+  } else {
+    authBtn.textContent = "Login / Sign Up";
+  }
+
+  // Show button only AFTER auth state is known
+  authBtn.classList.remove("hidden");
+});
 
   authBtn.addEventListener('click', () => {
     const user = auth.currentUser;
