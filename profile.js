@@ -12,9 +12,9 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  nameEl.textContent = user.displayName || "No name";
+  nameEl.textContent = user.displayName || "Straxian User";
   emailEl.textContent = user.email;
-  picEl.src = user.photoURL || "https://via.placeholder.com/80";
+  picEl.src = user.photoURL || "https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff";
 });
 
 logoutBtn.addEventListener('click', () => {

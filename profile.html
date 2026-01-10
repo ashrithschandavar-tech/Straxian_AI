@@ -1,18 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Profile – Straxian AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script type="module" src="profile.js"></script>
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen">
 
-  <h2>My Profile</h2>
+  <nav class="p-4 flex justify-between items-center bg-white shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="bg-indigo-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
+      <span class="font-bold text-xl tracking-tight">Straxian <span class="text-indigo-600">AI</span></span>
+    </div>
 
-  <img id="profilePic" width="80" style="border-radius:50%"><br><br>
-  <p id="name"></p>
-  <p id="email"></p>
+    <a href="index.html" class="text-sm font-semibold text-indigo-600 hover:underline">← Back to App</a>
+  </nav>
 
-  <button id="logoutBtn">Logout</button>
+  <div class="max-w-4xl mx-auto px-6 py-12">
+
+    <div class="bg-white rounded-3xl shadow-xl p-8 flex flex-col md:flex-row items-center gap-8">
+      
+      <img id="profilePic" class="w-28 h-28 rounded-full border-4 border-indigo-100 object-cover">
+
+      <div class="flex-1">
+        <h2 id="name" class="text-2xl font-extrabold text-gray-800"></h2>
+        <p id="email" class="text-gray-500 mt-1"></p>
+
+        <div class="mt-6 flex gap-4">
+          <button id="logoutBtn"
+            class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition">
+            Logout
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 
 </body>
 </html>
