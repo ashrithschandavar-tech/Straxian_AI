@@ -7,7 +7,20 @@
     animation: fadeIn 0.6s ease-out forwards;
 }
 
-/* Custom styles for the roadmap blocks to match your screenshots */
+/* Fix sidebar height and layout */
+aside#sidebar {
+    height: calc(100vh - 64px); /* Nav is roughly 64px */
+}
+
+#history-list::-webkit-scrollbar {
+    width: 4px;
+}
+#history-list::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 10px;
+}
+
+/* Original Milestone Styles */
 .milestone-card {
     background: white;
     padding: 1.5rem;
@@ -16,7 +29,6 @@
     position: relative;
     margin-bottom:2rem;
 }
-
 .milestone-number {
     position: absolute;
     left: -2.5rem;
@@ -32,7 +44,6 @@
     font-weight: bold;
     font-size: 0.8rem;
 }
-
 .habits-sidebar {
     background: #2d3282;
     color: white;
