@@ -7,121 +7,127 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- AOS CSS -->
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 </head>
+
 <body class="bg-gray-50 font-sans antialiased">
+
 <div id="app-wrapper" class="flex min-h-screen">
 
     <!-- SIDEBAR -->
-<div id="sidebar" class="hidden w-64 bg-gray-900 text-white p-4 flex flex-col">
-
-  <div class="flex items-center justify-between mb-4">
-    <span class="font-bold text-lg">Projects</span>
-    <button id="newProjectBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-2 py-1 rounded">
-      +
-    </button>
-  </div>
-
-  <div id="projectList" class="space-y-2 flex-1 overflow-y-auto">
-    <!-- projects will come here later -->
-  </div>
-
-</div>
-
-    <!-- projects will come here later -->
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="main-app" class="flex-1">
-
-<nav class="p-4 flex justify-between items-center bg-white shadow-sm">
-  <div class="flex items-center gap-2">
-    <div class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
-    <span class="font-bold text-xl tracking-tight">Straxian <span class="text-blue-600">AI</span></span>
-  </div>
-
-  <div>
-    <button id="authBtn" class="hidden px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">
-  Login / Sign Up
-</button>
-  </div>
-</nav>  
-
-    <main class="max-w-4xl mx-auto px-6 py-12">
-        <div id="header-section" class="text-center mb-12" data-aos="fade-up" data-aos-duration="1000">
-            <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
-                Turn Your <span class="text-indigo-500">Aims</span> Into Action.
-            </h1>
-            <p class="text-gray-500 text-lg">An AI strategy engine that turns vague goals into precise execution plans.</p>
+    <div id="sidebar" class="hidden w-64 bg-gray-900 text-white p-4 flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <span class="font-bold text-lg">Projects</span>
+            <button id="newProjectBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-2 py-1 rounded">
+                +
+            </button>
         </div>
 
-        <div id="input-card" class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100" data-aos="zoom-in" data-aos-duration="1200">
-            <div class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">What is your aim or skill?</label>
-                    <input type="text" id="user-aim" placeholder="e.g. Master React.js, Run a Marathon, JEE"
-                           class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                </div>
+        <div id="projectList" class="space-y-2 flex-1 overflow-y-auto">
+            <!-- projects will come here later -->
+        </div>
+    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-                        <select id="category" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                            <option>Education</option>
-                            <option>Skills</option>
-                            <option>Fitness</option>
-                            <option>Creative</option>
-                            <option>Projects</option>
-                            <option>Other Structured Goals</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Current Experience / Difficulty</label>
-                        <select id="difficulty" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                            <option>Beginner</option>
-                            <option>Intermediate</option>
-                            <option>Advanced</option>
-                        </select>
-                    </div>
-                </div>
+    <!-- MAIN APP -->
+    <div id="main-app" class="flex-1">
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date</label>
-                    <input type="date" id="due-date" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
+        <!-- NAVBAR -->
+        <nav class="p-4 flex items-center bg-white shadow-sm">
+            <button id="toggleSidebarBtn" class="mr-4 text-gray-600 hover:text-indigo-600 text-xl">
+                ☰
+            </button>
 
-                <button id="generate-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-95"
-                        data-aos="pulse" data-aos-duration="1000" data-aos-delay="300">
-                    Generate My Success Plan
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
+                <span class="font-bold text-xl tracking-tight">Straxian <span class="text-blue-600">AI</span></span>
+            </div>
+
+            <div class="ml-auto">
+                <button id="authBtn" class="hidden px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">
+                    Login / Sign Up
                 </button>
             </div>
-        </div>
+        </nav>
 
-        <div id="loading-state" class="hidden text-center py-20" data-aos="fade-in" data-aos-duration="800">
-            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-            <p class="text-xl font-semibold text-gray-700" id="loading-text">Strategizing Your Path...</p>
-        </div>
+        <!-- MAIN CONTENT -->
+        <main class="max-w-4xl mx-auto px-6 py-12">
 
-        <div id="result-container" class="hidden space-y-8">
-            <!-- Dynamic content will go here -->
-        </div>
-    </main>
+            <div id="header-section" class="text-center mb-12" data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
+                    Turn Your <span class="text-indigo-500">Aims</span> Into Action.
+                </h1>
+                <p class="text-gray-500 text-lg">An AI strategy engine that turns vague goals into precise execution plans.</p>
+            </div>
 
-    <script type="module" src="script.js"></script>
+            <div id="input-card" class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100" data-aos="zoom-in" data-aos-duration="1200">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">What is your aim or skill?</label>
+                        <input type="text" id="user-aim" placeholder="e.g. Master React.js, Run a Marathon, JEE"
+                               class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    </div>
 
-    <!-- AOS JS + Initialization -->
-    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-    <script>
-        AOS.init({
-            duration: 800,       // Smooth animation time
-            easing: 'ease-in-out', // Nice reverse feel
-            once: false,         // REPEAT every scroll up/down
-            mirror: true         // Reverse animation when scrolling up
-        });
-    </script>
-    </div> <!-- closes main-app -->
-</div> <!-- closes app-wrapper -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                            <select id="category" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                                <option>Education</option>
+                                <option>Skills</option>
+                                <option>Fitness</option>
+                                <option>Creative</option>
+                                <option>Projects</option>
+                                <option>Other Structured Goals</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Experience / Difficulty</label>
+                            <select id="difficulty" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                                <option>Beginner</option>
+                                <option>Intermediate</option>
+                                <option>Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date</label>
+                        <input type="date" id="due-date" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+
+                    <button id="generate-btn"
+                            class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-95"
+                            data-aos="pulse" data-aos-duration="1000" data-aos-delay="300">
+                        Generate My Success Plan
+                    </button>
+                </div>
+            </div>
+
+            <div id="loading-state" class="hidden text-center py-20" data-aos="fade-in" data-aos-duration="800">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
+                <p class="text-xl font-semibold text-gray-700" id="loading-text">Strategizing Your Path...</p>
+            </div>
+
+            <div id="result-container" class="hidden space-y-8">
+                <!-- Dynamic content will go here -->
+            </div>
+
+        </main>
+
+    </div> <!-- end main-app -->
+
+</div> <!-- end app-wrapper -->
+
+<script type="module" src="script.js"></script>
+
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: false,
+        mirror: true
+    });
+</script>
+
 </body>
 </html>
