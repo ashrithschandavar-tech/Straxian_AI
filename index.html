@@ -9,33 +9,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 </head>
-
 <body class="bg-gray-50 font-sans antialiased">
 
-<div id="app-wrapper" class="flex min-h-screen">
+<div id="app-wrapper" class="flex w-full h-full">
 
     <!-- SIDEBAR -->
     <div id="sidebar" class="hidden w-64 bg-gray-900 text-white p-4 flex flex-col">
         <div class="flex items-center justify-between mb-4">
             <span class="font-bold text-lg">Projects</span>
-            <button id="newProjectBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-2 py-1 rounded">
-                +
-            </button>
+            <button id="newProjectBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-2 py-1 rounded">+</button>
         </div>
-
-        <div id="projectList" class="space-y-2 flex-1 overflow-y-auto">
-            <!-- projects will come here later -->
+        <div id="projectList" class="flex-1 overflow-y-auto space-y-2">
+            <!-- project items will go here -->
         </div>
     </div>
 
     <!-- MAIN APP -->
-    <div id="main-app" class="flex-1">
+    <div id="main-app" class="flex-1 flex flex-col">
 
         <!-- NAVBAR -->
         <nav class="p-4 flex items-center bg-white shadow-sm">
-            <button id="toggleSidebarBtn" class="mr-4 text-gray-600 hover:text-indigo-600 text-xl">
-                ☰
-            </button>
+            <button id="toggleSidebarBtn" class="mr-4 text-gray-600 hover:text-indigo-600 text-xl">☰</button>
 
             <div class="flex items-center gap-2">
                 <div class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
@@ -50,7 +44,7 @@
         </nav>
 
         <!-- MAIN CONTENT -->
-        <main class="max-w-4xl mx-auto px-6 py-12">
+        <main class="max-w-4xl mx-auto px-6 py-12 flex-1 overflow-auto">
 
             <div id="header-section" class="text-center mb-12" data-aos="fade-up" data-aos-duration="1000">
                 <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
@@ -66,7 +60,6 @@
                         <input type="text" id="user-aim" placeholder="e.g. Master React.js, Run a Marathon, JEE"
                                class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
@@ -88,14 +81,11 @@
                             </select>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Due Date</label>
                         <input type="date" id="due-date" class="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
-
-                    <button id="generate-btn"
-                            class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-95"
+                    <button id="generate-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-95"
                             data-aos="pulse" data-aos-duration="1000" data-aos-delay="300">
                         Generate My Success Plan
                     </button>
@@ -108,17 +98,15 @@
             </div>
 
             <div id="result-container" class="hidden space-y-8">
-                <!-- Dynamic content will go here -->
+                <!-- Dynamic content here -->
             </div>
 
         </main>
-
     </div> <!-- end main-app -->
 
 </div> <!-- end app-wrapper -->
 
 <script type="module" src="script.js"></script>
-
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 <script>
     AOS.init({
@@ -128,6 +116,5 @@
         mirror: true
     });
 </script>
-
 </body>
 </html>

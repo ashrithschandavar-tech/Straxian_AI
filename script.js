@@ -85,7 +85,25 @@ generateBtn.addEventListener('click', async () => {
   const today = new Date().toISOString().split('T')[0];
 
   const prompt = `Act as an expert strategist. Today's date is ${today} (Year 2026).
-Goal: "${aim}". Target Date: ${dueDate}. Difficulty: ${difficulty}. Category: ${category}.`;
+Goal: "${aim}". Target Date: ${dueDate}. Difficulty: ${difficulty}. Category: ${category}.
+
+CRITICAL INSTRUCTIONS:
+1. CATEGORY CHECK: If "${aim}" is unrelated to "${category}" (e.g. "Cooking" in "Fitness"), populate the "categoryMismatch" field with a polite message.
+2. TIMELINE CHECK: If the time between ${today} and ${dueDate} is too short to realistically achieve the goal, populate the "warning" field.
+3. DATE ENFORCEMENT: All phase dates must be between ${today} and ${dueDate}. Use 2026/2027 based on the timeline.
+4. COMPLETE TASK: Even if there is a mismatch, STILL generate the full roadmap.
+
+Return ONLY a JSON object:
+{
+  "warning": "Timeline warning or null",
+  "categoryMismatch": "Mismatch message or null",
+  "title": "Title",
+  "description": "Short overview",
+  "phases": [{"name": "Phase 1", "date": "Month/Year", "desc": "Details"}],
+  "habits": ["Habit 1", "Habit 2", "Habit 3", "Habit 4", "Habit 5"],
+  "hurdles": [{"issue": "Challenge", "sol": "Solution"}],
+  "resources": [{"type": "BOOK", "price": "Free", "name": "Resource Name", "desc": "Description"}]
+}`;
 
   try {
     const response = await fetch('/api/generate', {
