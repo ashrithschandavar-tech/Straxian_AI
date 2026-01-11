@@ -16,14 +16,29 @@ const logoHome = document.getElementById('logoHome');
 
 // --- AUTH & SIDEBAR SYNC ---
 onAuthStateChanged(auth, (user) => {
+    authBtn.classList.remove('hidden');
+    authBtn.style.display = "block"; 
+
     if (user) {
+        // 1. Change text to Profile
         authBtn.textContent = "Profile";
-        authBtn.onclick = () => window.location.href = "profile.html"; // ADD THIS LINE
+        
+        // 2. TELL it where to go when clicked
+        authBtn.onclick = () => { 
+            window.location.href = "profile.html"; 
+        };
+
         sidebar.classList.remove('hidden');
-        loadHistory(user.uid);
+        loadHistory(user.uid); // This will now succeed!
     } else {
+        // 1. Change text to Login
         authBtn.textContent = "Login / Sign Up";
-        authBtn.onclick = () => window.location.href = "login.html"; // ADD THIS LINE
+        
+        // 2. TELL it where to go when clicked
+        authBtn.onclick = () => { 
+            window.location.href = "login.html"; 
+        };
+
         sidebar.classList.add('hidden');
     }
 });
