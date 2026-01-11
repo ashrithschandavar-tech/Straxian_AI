@@ -1,3 +1,10 @@
+const toggleBtn = document.getElementById("toggleSidebarBtn");
+
+if (toggleBtn) {
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("hidden");
+  });
+}
 import { auth } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
