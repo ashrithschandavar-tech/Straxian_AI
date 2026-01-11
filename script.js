@@ -18,13 +18,14 @@ const logoHome = document.getElementById('logoHome');
 onAuthStateChanged(auth, (user) => {
     if (user) {
         authBtn.textContent = "Profile";
+        authBtn.onclick = () => window.location.href = "profile.html"; // ADD THIS LINE
         sidebar.classList.remove('hidden');
         loadHistory(user.uid);
     } else {
         authBtn.textContent = "Login / Sign Up";
+        authBtn.onclick = () => window.location.href = "login.html"; // ADD THIS LINE
         sidebar.classList.add('hidden');
     }
-    authBtn.classList.remove("hidden");
 });
 
 // --- RESET APP FUNCTION ---
