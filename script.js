@@ -4,14 +4,17 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 const authBtn = document.getElementById('authBtn');
 
 if (authBtn) {
-  onAuthStateChanged(auth, (user) => {
+  const sidebar = document.getElementById("sidebar");
+
+onAuthStateChanged(auth, (user) => {
   if (user) {
     authBtn.textContent = "Profile";
+    sidebar.classList.remove("hidden"); // SHOW sidebar
   } else {
     authBtn.textContent = "Login / Sign Up";
+    sidebar.classList.add("hidden"); // HIDE sidebar
   }
 
-  // Show button only AFTER auth state is known
   authBtn.classList.remove("hidden");
 });
 

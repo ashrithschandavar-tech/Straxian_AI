@@ -11,8 +11,20 @@
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 font-sans antialiased">
+<div id="app-wrapper" class="flex min-h-screen">
 
-    <nav class="p-4 flex justify-between items-center bg-white shadow-sm">
+    <!-- SIDEBAR -->
+<div id="sidebar" class="hidden w-64 bg-gray-900 text-white p-4">
+  <div class="font-bold text-lg mb-4">Projects</div>
+  <div id="projectList" class="space-y-2">
+    <!-- projects will come here later -->
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="flex-1">
+
+<nav class="p-4 flex justify-between items-center bg-white shadow-sm">
   <div class="flex items-center gap-2">
     <div class="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
     <span class="font-bold text-xl tracking-tight">Straxian <span class="text-blue-600">AI</span></span>
@@ -97,5 +109,7 @@
             mirror: true         // Reverse animation when scrolling up
         });
     </script>
+    </div> <!-- closes main-app -->
+</div> <!-- closes app-wrapper -->
 </body>
 </html>
