@@ -30,6 +30,8 @@ onAuthStateChanged(auth, (user) => {
 }
 
 const generateBtn = document.getElementById('generate-btn');
+const spinner = document.getElementById('spinner');
+const btnText = document.getElementById('btn-text');
 const inputCard = document.getElementById('input-card');
 const loadingState = document.getElementById('loading-state');
 const resultContainer = document.getElementById('result-container');
@@ -73,6 +75,12 @@ generateBtn.addEventListener('click', async () => {
     const dueDate = document.getElementById('due-date').value;
 
     if (!aim || !dueDate) return alert("Please enter your goal and a due date!");
+
+    // --- UX Enhancement: Button Loading State ---
+    generateBtn.disabled = true;
+    spinner.classList.remove('hidden');
+    btnText.textContent = 'Generating...';
+
 
     // UI Transition
     inputCard.classList.add('hidden');
@@ -125,6 +133,11 @@ generateBtn.addEventListener('click', async () => {
         inputCard.classList.remove('hidden');
         headerSection.classList.remove('hidden');
         loadingState.classList.add('hidden');
+    } finally {
+        // --- UX Enhancement: Reset Button State ---
+        generateBtn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.textContent = 'Generate My Success Plan';
     }
 });
 
