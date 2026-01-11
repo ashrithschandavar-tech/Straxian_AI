@@ -5,19 +5,17 @@ const authBtn = document.getElementById('authBtn');
 
 if (authBtn) {
   onAuthStateChanged(auth, (user) => {
-  if (user) {
-    authBtn.textContent = "Profile";
-  } else {
-    authBtn.textContent = "Login / Sign Up";
-  }
-
-  // Show button only AFTER auth state is known
-  authBtn.classList.remove("hidden");
-});
+    if (user) {
+      authBtn.textContent = "Profile";
+    } else {
+      authBtn.textContent = "Login / Sign Up";
+    }
+    // Show button only AFTER auth state is known
+    authBtn.classList.remove("hidden");
+  });
 
   authBtn.addEventListener('click', () => {
     const user = auth.currentUser;
-
     if (user) {
       window.location.href = "profile.html";
     } else {
@@ -43,26 +41,25 @@ if (logoHome) {
         document.getElementById('due-date').value = '';
         document.getElementById('category').selectedIndex = 0;
         document.getElementById('difficulty').selectedIndex = 0;
-        
+       
         // UI Transition back to home
         resultContainer.classList.add('hidden');
         loadingState.classList.add('hidden');
         inputCard.classList.remove('hidden');
-        headerSection.classList.remove('hidden');   
+        headerSection.classList.remove('hidden');
         window.scrollTo(0, 0);
     });
 }
 
 generateBtn.addEventListener('click', async () => {
-
   const user = auth.currentUser;
-
   if (!user) {
-  sessionStorage.setItem("postLoginAction", "generate");
-  window.location.href = "login.html";
-  return;
-}
+    sessionStorage.setItem("postLoginAction", "generate");
+    window.location.href = "login.html";
+    return;
+  }
 
+  // rest of your existing generate code below
   const aim = document.getElementById('user-aim').value;
   const category = document.getElementById('category').value;
   const difficulty = document.getElementById('difficulty').value;
@@ -79,13 +76,11 @@ generateBtn.addEventListener('click', async () => {
 
   const prompt = `Act as an expert strategist. Today's date is ${today} (Year 2026).
   Goal: "${aim}". Target Date: ${dueDate}. Difficulty: ${difficulty}. Category: ${category}.
-
   CRITICAL INSTRUCTIONS:
   1. CATEGORY CHECK: If "${aim}" is unrelated to "${category}" (e.g. "Cooking" in "Fitness"), populate the "categoryMismatch" field with a polite message.
   2. TIMELINE CHECK: If the time between ${today} and ${dueDate} is too short to realistically achieve the goal, populate the "warning" field.
   3. DATE ENFORCEMENT: All phase dates must be between ${today} and ${dueDate}. Use 2026/2027 based on the timeline.
   4. COMPLETE TASK: Even if there is a mismatch, STILL generate the full roadmap.
-
   Return ONLY a JSON object:
   {
     "warning": "Timeline warning or null",
@@ -112,11 +107,9 @@ generateBtn.addEventListener('click', async () => {
 
       const plan = await response.json();
       renderUI(plan, difficulty);
-
   } catch (error) {
       console.error('Generation error:', error);
       alert('Error: ' + error.message + '. Please try again later (quota or server issue).');
-
       // Reset UI on error
       inputCard.classList.remove('hidden');
       headerSection.classList.remove('hidden');
@@ -129,7 +122,7 @@ function renderUI(plan, difficulty) {
     resultContainer.classList.remove('hidden');
 
     let warningsHtml = '';
-    
+   
     // Category Mismatch Box (Blue)
     if (plan.categoryMismatch) {
         warningsHtml += `
@@ -160,7 +153,6 @@ function renderUI(plan, difficulty) {
 
     resultContainer.innerHTML = `
         ${warningsHtml}
-
         <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-8 animate-fade-in">
             <div class="flex justify-between items-start mb-4">
                 <h2 class="text-3xl font-bold text-gray-800">${plan.title}</h2>
@@ -196,6 +188,7 @@ function renderUI(plan, difficulty) {
                         ${plan.habits.map(h => `<li class="flex gap-2"><span>•</span> ${h}</li>`).join('')}
                     </ul>
                 </div>
+
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <h3 class="font-bold text-gray-800 mb-4">Common Hurdles</h3>
                     <div class="space-y-4">
