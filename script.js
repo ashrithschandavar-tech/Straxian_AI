@@ -125,7 +125,7 @@ generateBtn.addEventListener('click', async () => {
         const response = await fetch('/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt })
+            body: JSON.stringify({ prompt, userId: user.uid })
         });
 
         if (!response.ok) throw new Error('Failed to generate plan');
