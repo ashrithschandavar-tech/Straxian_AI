@@ -3,9 +3,10 @@
 import { Client } from '@notionhq/client';
 
 const MODELS_TO_TRY = [
-  'gemini-1.5-flash',      // Best stable fast model
-  'gemini-1.5-pro',        // Better quality fallback
-  'gemini-1.5-flash-8b',   // If you want even faster/cheaper
+  'gemini-2.5-flash',          // Fast, reliable default (most used in 2026)
+  'gemini-2.5-pro',            // Higher quality / better reasoning
+  'gemini-2.5-flash-lite',     // Cheaper & lighter variant
+  'gemini-3-flash-preview',    // Newer preview model
 ];
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -27,15 +28,14 @@ export default async function handler(req, res) {
   }
 
   if (!process.env.NOTION_TOKEN || !process.env.NOTION_PARENT_PAGE_ID) {
-    console.error('Notion environment variables missing');
-    // We continue anyway - Notion is optional enhancement
+    console.warn('Notion environment variables missing - skipping Notion step');
   }
 
   const API_KEY = process.env.GEMINI_API_KEY;
 
   if (!API_KEY) {
     console.error('GEMINI_API_KEY missing in Vercel env!');
-    return res.status(500).json({ error: 'Server error - missing key' });
+    return res.status(500).json({ error: 'Server error - missing Gemini key' });
   }
 
   let success = false;
@@ -43,6 +43,8 @@ export default async function handler(req, res) {
 
   for (const model of MODELS_TO_TRY) {
     if (success) break;
+
+    console.log(`Trying model: ${model}`);
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
 
@@ -59,21 +61,22 @@ export default async function handler(req, res) {
 
       if (data.error) {
         console.error(`Error with ${model}:`, data.error);
-        if (data.error.code === 429) continue; // Rate limit → try next model
-        throw new Error(data.error.message);
+        if (data.error.code === 429) continue; // Rate limit → try next
+        continue; // Try next model on other errors
       }
 
       const rawText = data.candidates[0].content.parts[0].text;
       const cleanJson = rawText.replace(/```json|```/g, '').trim();
       plan = JSON.parse(cleanJson);
       success = true;
+      console.log(`Success with model: ${model}`);
     } catch (error) {
       console.error(`Failed with ${model}:`, error.message);
     }
   }
 
   if (!success) {
-    return res.status(500).json({ error: 'Failed to generate plan. Try again later.' });
+    return res.status(500).json({ error: 'Failed to generate plan with any model. Check logs for details.' });
   }
 
   // ────────────────────────────────────────────────
@@ -83,6 +86,9 @@ export default async function handler(req, res) {
 
   try {
     if (process.env.NOTION_TOKEN && process.env.NOTION_PARENT_PAGE_ID) {
+      console.log('Attempting to create Notion DB for user:', userId.slice(0, 8));
+      console.log('Using parent page ID:', PARENT_PAGE_ID);
+
       // Create a new database for this user
       const dbResponse = await notion.databases.create({
         parent: { page_id: PARENT_PAGE_ID },
@@ -104,9 +110,11 @@ export default async function handler(req, res) {
       });
 
       notionDatabaseId = dbResponse.id;
+      console.log('Notion database created successfully! ID:', notionDatabaseId);
 
       // Add entries from the generated plan phases
       if (plan.phases && Array.isArray(plan.phases)) {
+        console.log(`Adding ${plan.phases.length} phase entries to the database`);
         for (const phase of plan.phases) {
           await notion.pages.create({
             parent: { database_id: notionDatabaseId },
@@ -123,20 +131,25 @@ export default async function handler(req, res) {
               Status: { select: { name: 'To Do' } },
             },
           });
+          console.log('Added phase to Notion:', phase.name || 'Unnamed');
         }
+      } else {
+        console.log('No phases found in plan - skipping row creation');
       }
-
-      console.log(`Created Notion database for user ${userId.slice(0,8)}: ${notionDatabaseId}`);
+    } else {
+      console.log('Notion env vars missing - skipping creation');
     }
   } catch (notionError) {
-    console.error('Notion integration failed:', notionError.message);
-    // Do NOT fail the whole request - Notion is secondary
+    console.error('Notion integration failed:', {
+      message: notionError.message,
+      code: notionError.code || 'unknown',
+      status: notionError.status || 'unknown',
+    });
   }
 
-  // Return the plan (and optionally the Notion DB ID if you want to store it later)
+  // Return the plan to frontend
   res.status(200).json({
     ...plan,
-    // You can remove this line if you don't need it in the frontend yet
     notionDatabaseId: notionDatabaseId || null,
   });
 }
