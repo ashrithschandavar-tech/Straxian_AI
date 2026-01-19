@@ -20,25 +20,13 @@ onAuthStateChanged(auth, (user) => {
     authBtn.style.display = "block"; 
 
     if (user) {
-        // 1. Change text to Profile
         authBtn.textContent = "Profile";
-        
-        // 2. TELL it where to go when clicked
-        authBtn.onclick = () => { 
-            window.location.href = "profile.html"; 
-        };
-
+        authBtn.onclick = () => { window.location.href = "profile.html"; };
         sidebar.classList.remove('hidden');
-        loadHistory(user.uid); // This will now succeed!
+        loadHistory(user.uid);
     } else {
-        // 1. Change text to Login
         authBtn.textContent = "Login / Sign Up";
-        
-        // 2. TELL it where to go when clicked
-        authBtn.onclick = () => { 
-            window.location.href = "login.html"; 
-        };
-
+        authBtn.onclick = () => { window.location.href = "login.html"; };
         sidebar.classList.add('hidden');
     }
 });
@@ -51,6 +39,7 @@ function resetUI() {
     document.getElementById('difficulty').selectedIndex = 0;
     
     resultContainer.classList.add('hidden');
+    document.getElementById('timetable-section').classList.add('hidden');
     loadingState.classList.add('hidden');
     inputCard.classList.remove('hidden');
     headerSection.classList.remove('hidden');
@@ -116,7 +105,8 @@ generateBtn.addEventListener('click', async () => {
       "title": "Title",
       "description": "Short overview",
       "phases": [{"name": "Phase 1", "date": "Month/Year", "desc": "Details"}],
-      "habits": ["Habit 1", "Habit 2", "Habit 3", "Habit 4", "Habit 5"],
+      "habits": ["Habit 1", "Habit 2"],
+      "timetable": [{"time": "08:00 AM", "task": "Wake up and Review"}, {"time": "09:00 AM", "task": "Deep Work Session"}],
       "hurdles": [{"issue": "Challenge", "sol": "Solution"}],
       "resources": [{"type": "BOOK", "price": "Free", "name": "Resource Name", "desc": "Description"}]
     }`;
@@ -131,10 +121,8 @@ generateBtn.addEventListener('click', async () => {
         if (!response.ok) throw new Error('Failed to generate plan');
         const plan = await response.json();
 
-        // 1. Render UI
         renderUI(plan, difficulty);
 
-        // 2. Save to Firestore
         await addDoc(collection(db, "plans"), {
             userId: user.uid,
             title: aim,
@@ -152,11 +140,20 @@ generateBtn.addEventListener('click', async () => {
     }
 });
 
+// --- UI RENDERING ---
 function renderUI(plan, difficulty) {
     loadingState.classList.add('hidden');
     resultContainer.classList.remove('hidden');
-    let warningsHtml = '';
     
+    // 1. Render Timetable if it exists in the JSON
+    if (plan.timetable) {
+        renderTimetable(plan.timetable);
+    } else {
+        document.getElementById('timetable-section').classList.add('hidden');
+    }
+
+    // 2. Build Warnings and Main Content
+    let warningsHtml = '';
     if (plan.categoryMismatch) {
         warningsHtml += `
             <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-2xl mb-4 animate-fade-in">
@@ -246,3 +243,53 @@ function renderUI(plan, difficulty) {
     `;
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// --- TIMETABLE CORE FUNCTIONS ---
+function renderTimetable(timetableData) {
+    const timetableSection = document.getElementById('timetable-section');
+    const timetableList = document.getElementById('timetable-list');
+    
+    timetableSection.classList.remove('hidden');
+    timetableList.innerHTML = ''; 
+
+    timetableData.forEach((item) => {
+        createTimetableRow(item.time, item.task);
+    });
+}
+
+function createTimetableRow(time = "09:00 AM", task = "New Task") {
+    const timetableList = document.getElementById('timetable-list');
+    const row = document.createElement('div');
+    row.className = "timetable-row animate-fade-in";
+
+    row.innerHTML = `
+        <input type="checkbox" class="w-5 h-5 accent-indigo-600 cursor-pointer">
+        <input type="text" class="time-input" value="${time}">
+        <input type="text" class="task-input" value="${task}">
+        <button class="text-gray-300 hover:text-red-500 transition remove-row-btn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    `;
+
+    const checkbox = row.querySelector('input[type="checkbox"]');
+    const taskInput = row.querySelector('.task-input');
+    
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+            taskInput.classList.add('task-done');
+        } else {
+            taskInput.classList.remove('task-done');
+        }
+    });
+
+    row.querySelector('.remove-row-btn').addEventListener('click', () => {
+        row.remove();
+    });
+
+    timetableList.appendChild(row);
+}
+
+// Add Manual Slot Event Listener
+document.getElementById('add-slot-btn').addEventListener('click', () => {
+    createTimetableRow();
+});

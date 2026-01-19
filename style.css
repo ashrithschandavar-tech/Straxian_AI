@@ -73,3 +73,43 @@ aside#sidebar {
     padding: 2rem;
     border-radius: 1.5rem;
 }
+/* --- TIMETABLE STYLES --- */
+.timetable-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #f3f4f6;
+    transition: all 0.2s;
+}
+
+.timetable-row:hover {
+    border-color: #e5e7eb;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.task-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.task-done {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.time-input {
+    background: transparent;
+    border: none;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6b7280;
+    width: 80px;
+}
