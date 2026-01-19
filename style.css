@@ -113,3 +113,16 @@ aside#sidebar {
     color: #6b7280;
     width: 80px;
 }
+.drag-handle {
+    cursor: grab;
+    color: #d1d5db;
+    padding: 0 5px;
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+/* Visual ghost effect when dragging */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #e0e7ff !important;
+}

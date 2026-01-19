@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Straxian AI - Strategy Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
@@ -23,7 +24,6 @@
     </nav>
 
     <div class="flex flex-1 overflow-hidden">
-        
         <aside id="sidebar" class="hidden w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50">
                 <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wider">My History</h3>
@@ -86,25 +86,27 @@
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
                 <p class="text-xl font-semibold text-gray-700" id="loading-text">Strategizing Your Path...</p>
             </div>
-            <div id="timetable-section" class="hidden max-w-4xl mx-auto mt-12 mb-20 animate-fade-in">
-    <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <i class="fa-solid fa-calendar-day text-indigo-500"></i> Daily Execution Timetable
-        </h3>
-        <button id="generate-timetable-btn" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-lg shadow transition flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Re-Generate Timetable
-        </button>
-    </div>
 
-    <div id="timetable-list" class="space-y-3 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-        </div>
-    
-    <button id="add-slot-btn" class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-        <i class="fa-solid fa-plus text-xs"></i> Add Manual Slot
-    </button>
-</div>
             <div id="result-container" class="hidden space-y-8 max-w-4xl mx-auto">
                 </div>
+
+            <div id="timetable-section" class="hidden max-w-4xl mx-auto mt-12 mb-20 animate-fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-day text-indigo-500"></i> Daily Execution Timetable
+                    </h3>
+                    <button id="generate-timetable-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule
+                    </button>
+                </div>
+
+                <div id="timetable-list" class="space-y-3 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm min-h-[50px]">
+                    </div>
+                
+                <button id="add-slot-btn" class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i> Add Manual Slot
+                </button>
+            </div>
         </main>
     </div>
 
