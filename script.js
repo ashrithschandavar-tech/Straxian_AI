@@ -1,12 +1,12 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";// Note: Ensure your firebase.js exports 'db' correctly. 
-// I added 'doc' and 'updateDoc' to the imports above.
+import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
+const sidebarToggle = document.getElementById('sidebarToggle');
 
 const generateBtn = document.getElementById('generate-btn');
 const inputCard = document.getElementById('input-card');
@@ -16,7 +16,12 @@ const headerSection = document.getElementById('header-section');
 const logoHome = document.getElementById('logoHome');
 
 let currentPlanData = null; 
-let currentDocId = null; // Track the active Firestore Document ID
+let currentDocId = null;
+
+// --- SIDEBAR TOGGLE LOGIC ---
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('hidden');
+});
 
 // --- AUTH & SIDEBAR SYNC ---
 onAuthStateChanged(auth, (user) => {
@@ -67,7 +72,7 @@ function loadHistory(uid) {
             item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors truncate border-b border-gray-50 flex items-center gap-2";
             item.innerHTML = `<i class="fa-solid fa-calendar-check text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
             item.onclick = () => {
-                currentDocId = fbDoc.id; // Store ID for saving changes
+                currentDocId = fbDoc.id; 
                 inputCard.classList.add('hidden');
                 headerSection.classList.add('hidden');
                 renderUI(data.plan, data.difficulty);
@@ -123,7 +128,6 @@ generateBtn.addEventListener('click', async () => {
         if (!response.ok) throw new Error('Failed to generate plan');
         const plan = await response.json();
 
-        // Save to Firestore first to get the ID
         const docRef = await addDoc(collection(db, "plans"), {
             userId: user.uid,
             title: aim,
@@ -154,7 +158,6 @@ function renderUI(plan, difficulty) {
     const ttList = document.getElementById('timetable-list');
     ttSection.classList.remove('hidden');
     
-    // If we are loading an existing plan, show the timetable immediately
     if (plan.timetable && plan.timetable.length > 0) {
         renderTimetable(plan.timetable);
         document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
@@ -162,7 +165,6 @@ function renderUI(plan, difficulty) {
         ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click "Generate Daily Schedule" to build your routine.</p>';
     }
 
-    // (Simplified Warnings/Content Logic)
     let warningsHtml = '';
     if (plan.categoryMismatch) warningsHtml += `<div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-2xl mb-4 animate-fade-in"><p class="text-blue-800 text-sm">${plan.categoryMismatch}</p></div>`;
     if (plan.warning) warningsHtml += `<div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-2xl mb-8 animate-fade-in"><p class="text-amber-800 text-sm">${plan.warning}</p></div>`;
@@ -187,22 +189,19 @@ function renderUI(plan, difficulty) {
 }
 
 // --- TIMETABLE CORE & AUTO-SAVE ---
-
-// Initialize Drag and Drop
 const ttListEl = document.getElementById('timetable-list');
 Sortable.create(ttListEl, {
     handle: '.drag-handle',
     animation: 150,
     ghostClass: 'bg-indigo-50',
-    onEnd: () => saveTimetableState() // Save after dragging
+    onEnd: () => saveTimetableState() 
 });
 
-// Trigger Generation
 document.getElementById('generate-timetable-btn').addEventListener('click', () => {
     if (!currentPlanData || !currentPlanData.timetable) return;
     renderTimetable(currentPlanData.timetable);
     document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
-    saveTimetableState(); // Save the newly generated timetable
+    saveTimetableState(); 
 });
 
 function renderTimetable(timetableData) {
@@ -225,7 +224,6 @@ function createTimetableRow(time = "09:00 AM", task = "New Task") {
         <button class="remove-row-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash-can"></i></button>
     `;
 
-    // Save on changes
     row.querySelector('.time-input').addEventListener('blur', () => {
         resortRows();
         saveTimetableState();
@@ -246,25 +244,18 @@ function createTimetableRow(time = "09:00 AM", task = "New Task") {
     timetableList.appendChild(row);
 }
 
-// Function to collect current UI rows and save to Firestore
 async function saveTimetableState() {
     if (!currentDocId) return;
-
     const list = document.getElementById('timetable-list');
     const rows = Array.from(list.querySelectorAll('.timetable-row'));
-    
     const updatedTimetable = rows.map(r => ({
         time: r.querySelector('.time-input').value,
         task: r.querySelector('.task-input').value,
-        // Optional: you could save the "checked" state here too if you add it to the schema
     }));
 
     try {
         const planRef = doc(db, "plans", currentDocId);
-        // We update only the timetable part of the plan object
-        await updateDoc(planRef, {
-            "plan.timetable": updatedTimetable
-        });
+        await updateDoc(planRef, { "plan.timetable": updatedTimetable });
         console.log("Timetable saved automatically.");
     } catch (err) {
         console.error("Save error:", err);
