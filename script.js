@@ -6,6 +6,7 @@ const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
+const myTimetablesBtn = document.getElementById('my-timetables-btn');
 
 const generateBtn = document.getElementById('generate-btn');
 const inputCard = document.getElementById('input-card');
@@ -14,9 +15,11 @@ const resultContainer = document.getElementById('result-container');
 const headerSection = document.getElementById('header-section');
 const logoHome = document.getElementById('logoHome');
 
-let currentPlanData = null; // Stores plan globally for the separate timetable button
+let currentPlanData = null;
+let currentDocId = null;
+let timetablesContainer = null;
 
-// --- AUTH & SIDEBAR SYNC ---
+// ─── AUTH & SIDEBAR SYNC ─────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
     authBtn.classList.remove('hidden');
     authBtn.style.display = "block"; 
@@ -25,6 +28,10 @@ onAuthStateChanged(auth, (user) => {
         authBtn.onclick = () => { window.location.href = "profile.html"; };
         sidebar.classList.remove('hidden');
         loadHistory(user.uid);
+
+        myTimetablesBtn.addEventListener('click', () => {
+            showTimetablesView(user.uid);
+        });
     } else {
         authBtn.textContent = "Login / Sign Up";
         authBtn.onclick = () => { window.location.href = "login.html"; };
@@ -32,7 +39,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- RESET APP ---
+// ─── RESET APP ───────────────────────────────────────────────────────
 function resetUI() {
     document.getElementById('user-aim').value = '';
     document.getElementById('due-date').value = '';
@@ -43,13 +50,14 @@ function resetUI() {
     loadingState.classList.add('hidden');
     inputCard.classList.remove('hidden');
     headerSection.classList.remove('hidden');
+    if (timetablesContainer) timetablesContainer.classList.add('hidden');
     window.scrollTo(0, 0);
 }
 
 logoHome.addEventListener('click', resetUI);
 newPlanBtn.addEventListener('click', resetUI);
 
-// --- FIREBASE HISTORY ---
+// ─── FIREBASE HISTORY ────────────────────────────────────────────────
 function loadHistory(uid) {
     const q = query(collection(db, "plans"), where("userId", "==", uid), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -64,8 +72,10 @@ function loadHistory(uid) {
             item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors truncate border-b border-gray-50 flex items-center gap-2";
             item.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
             item.onclick = () => {
+                currentDocId = doc.id;
                 inputCard.classList.add('hidden');
                 headerSection.classList.add('hidden');
+                if (timetablesContainer) timetablesContainer.classList.add('hidden');
                 renderUI(data.plan, data.difficulty);
             };
             historyList.appendChild(item);
@@ -73,7 +83,7 @@ function loadHistory(uid) {
     });
 }
 
-// --- GENERATION LOGIC ---
+// ─── GENERATION LOGIC ────────────────────────────────────────────────
 generateBtn.addEventListener('click', async () => {
     const user = auth.currentUser;
     if (!user) {
@@ -121,13 +131,15 @@ generateBtn.addEventListener('click', async () => {
 
         renderUI(plan, difficulty);
 
-        await addDoc(collection(db, "plans"), {
+        const docRef = await addDoc(collection(db, "plans"), {
             userId: user.uid,
             title: aim,
             plan: plan,
             difficulty: difficulty,
             createdAt: new Date()
         });
+
+        currentDocId = docRef.id;
 
     } catch (error) {
         console.error('Generation error:', error);
@@ -138,13 +150,12 @@ generateBtn.addEventListener('click', async () => {
     }
 });
 
-// --- UI RENDERING ---
+// ─── UI RENDERING ────────────────────────────────────────────────────
 function renderUI(plan, difficulty) {
-    currentPlanData = plan; // Store for timetable button
+    currentPlanData = plan;
     loadingState.classList.add('hidden');
     resultContainer.classList.remove('hidden');
     
-    // Reset Timetable Section
     const ttSection = document.getElementById('timetable-section');
     const ttList = document.getElementById('timetable-list');
     ttSection.classList.remove('hidden');
@@ -196,7 +207,121 @@ function renderUI(plan, difficulty) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// --- TIMETABLE LOGIC ---
+// ─── TIMETABLES VIEW ─────────────────────────────────────────────────
+
+function showTimetablesView(uid) {
+    inputCard.classList.add('hidden');
+    headerSection.classList.add('hidden');
+    resultContainer.classList.add('hidden');
+    document.getElementById('timetable-section').classList.add('hidden');
+
+    if (!timetablesContainer) {
+        timetablesContainer = document.createElement('div');
+        timetablesContainer.id = 'timetables-view';
+        timetablesContainer.className = 'max-w-4xl mx-auto py-10 px-4 space-y-5';
+        document.querySelector('main').appendChild(timetablesContainer);
+    }
+
+    timetablesContainer.innerHTML = `
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+            My Timetables
+        </h2>
+        <p class="text-gray-500">Loading your saved schedules...</p>
+    `;
+    timetablesContainer.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    loadTimetablesList(uid, timetablesContainer);
+}
+
+function loadTimetablesList(uid, container) {
+    const q = query(
+        collection(db, "plans"),
+        where("userId", "==", uid),
+        orderBy("createdAt", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+        container.innerHTML = `
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                My Timetables
+            </h2>
+        `;
+
+        if (snapshot.empty) {
+            container.innerHTML += `
+                <div class="text-center py-16 bg-white rounded-2xl border border-gray-200">
+                    <i class="fa-solid fa-calendar-xmark text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-lg font-medium text-gray-600">No timetables yet</p>
+                    <p class="text-sm text-gray-500 mt-2">Generate a plan and create a daily schedule first.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const plan = data.plan || {};
+            const timetable = plan.timetable || [];
+
+            const card = document.createElement('div');
+            card.className = `
+                bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-400 
+                hover:shadow-md transition-all cursor-pointer group
+            `;
+
+            let preview = '<p class="text-sm text-gray-400 italic">No timetable entries yet</p>';
+            if (timetable.length > 0) {
+                const sorted = [...timetable].sort((a, b) => compareTimes(a.time, b.time));
+                preview = sorted.slice(0, 5).map(item => `
+                    <div class="flex gap-3 text-sm py-0.5">
+                        <span class="font-mono text-indigo-600 w-20 shrink-0">${item.time}</span>
+                        <span class="truncate">${item.task}</span>
+                    </div>
+                `).join('');
+                if (timetable.length > 5) preview += '<div class="text-xs text-gray-400 mt-1">… and ' + (timetable.length - 5) + ' more</div>';
+            }
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                        ${data.title || "Plan"}
+                    </h4>
+                    <span class="text-xs text-gray-500">
+                        ${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '—'}
+                    </span>
+                </div>
+                <div class="space-y-1 mb-4">
+                    ${preview}
+                </div>
+                <div class="text-right">
+                    <span class="text-sm text-indigo-600 font-medium group-hover:underline">
+                        Open plan & edit schedule →
+                    </span>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                currentDocId = docSnap.id;
+                renderUI(plan, data.difficulty || "Intermediate");
+                if (timetablesContainer) timetablesContainer.classList.add('hidden');
+            });
+
+            fragment.appendChild(card);
+        });
+
+        container.appendChild(fragment);
+    }, (error) => {
+        console.error("Timetables load error:", error);
+        container.innerHTML += `<p class="text-red-600 mt-4">Error loading timetables: ${error.message}</p>`;
+    });
+}
+
+// ─── TIMETABLE LOGIC ─────────────────────────────────────────────────
 
 // Initialize Drag and Drop
 const ttListEl = document.getElementById('timetable-list');
@@ -216,7 +341,6 @@ document.getElementById('generate-timetable-btn').addEventListener('click', () =
 function renderTimetable(timetableData) {
     const timetableList = document.getElementById('timetable-list');
     timetableList.innerHTML = ''; 
-    // Sort initial data by time
     const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
     sorted.forEach(item => createTimetableRow(item.time, item.task));
 }
@@ -238,10 +362,8 @@ function createTimetableRow(time = "09:00 AM", task = "New Task") {
         </button>
     `;
 
-    // Sorting logic when time is changed
     row.querySelector('.time-input').addEventListener('blur', () => resortRows());
     
-    // Checkbox logic
     const checkbox = row.querySelector('input[type="checkbox"]');
     const taskInput = row.querySelector('.task-input');
     checkbox.addEventListener('change', () => taskInput.classList.toggle('task-done', checkbox.checked));
