@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
@@ -51,6 +51,8 @@ function resetUI() {
     inputCard.classList.remove('hidden');
     headerSection.classList.remove('hidden');
     if (timetablesContainer) timetablesContainer.classList.add('hidden');
+    currentDocId = null;
+    currentPlanData = null;
     window.scrollTo(0, 0);
 }
 
@@ -129,8 +131,6 @@ generateBtn.addEventListener('click', async () => {
         if (!response.ok) throw new Error('Failed to generate plan');
         const plan = await response.json();
 
-        renderUI(plan, difficulty);
-
         const docRef = await addDoc(collection(db, "plans"), {
             userId: user.uid,
             title: aim,
@@ -140,6 +140,7 @@ generateBtn.addEventListener('click', async () => {
         });
 
         currentDocId = docRef.id;
+        renderUI(plan, difficulty);
 
     } catch (error) {
         console.error('Generation error:', error);
@@ -159,8 +160,14 @@ function renderUI(plan, difficulty) {
     const ttSection = document.getElementById('timetable-section');
     const ttList = document.getElementById('timetable-list');
     ttSection.classList.remove('hidden');
-    ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click the button above to generate your daily schedule.</p>';
-    document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
+
+    if (plan.timetable && plan.timetable.length > 0) {
+        renderTimetable(plan.timetable);
+        document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+    } else {
+        ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click "Generate Daily Schedule" to build your routine.</p>';
+        document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
+    }
 
     let warningsHtml = '';
     if (plan.categoryMismatch) {
@@ -328,7 +335,8 @@ const ttListEl = document.getElementById('timetable-list');
 Sortable.create(ttListEl, {
     handle: '.drag-handle',
     animation: 150,
-    ghostClass: 'bg-indigo-50'
+    ghostClass: 'bg-indigo-50',
+    onEnd: () => saveTimetableState()
 });
 
 // Trigger Timetable Generation
@@ -336,6 +344,7 @@ document.getElementById('generate-timetable-btn').addEventListener('click', () =
     if (!currentPlanData || !currentPlanData.timetable) return;
     renderTimetable(currentPlanData.timetable);
     document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+    saveTimetableState();
 });
 
 function renderTimetable(timetableData) {
@@ -362,13 +371,24 @@ function createTimetableRow(time = "09:00 AM", task = "New Task") {
         </button>
     `;
 
-    row.querySelector('.time-input').addEventListener('blur', () => resortRows());
-    
+    row.querySelector('.time-input').addEventListener('blur', () => {
+        resortRows();
+        saveTimetableState();
+    });
+    row.querySelector('.task-input').addEventListener('blur', () => saveTimetableState());
+
     const checkbox = row.querySelector('input[type="checkbox"]');
     const taskInput = row.querySelector('.task-input');
-    checkbox.addEventListener('change', () => taskInput.classList.toggle('task-done', checkbox.checked));
+    checkbox.addEventListener('change', () => {
+        taskInput.classList.toggle('task-done', checkbox.checked);
+        saveTimetableState();
+    });
 
-    row.querySelector('.remove-row-btn').addEventListener('click', () => row.remove());
+    row.querySelector('.remove-row-btn').addEventListener('click', () => {
+        row.remove();
+        saveTimetableState();
+    });
+
     timetableList.appendChild(row);
 }
 
@@ -407,4 +427,27 @@ function resortRows() {
 document.getElementById('add-slot-btn').addEventListener('click', () => {
     createTimetableRow("12:00 PM", "New Activity");
     resortRows();
+    saveTimetableState();
 });
+
+async function saveTimetableState() {
+    if (!currentDocId) return;
+
+    const list = document.getElementById('timetable-list');
+    const rows = Array.from(list.querySelectorAll('.timetable-row'));
+
+    const updatedTimetable = rows.map(r => ({
+        time: r.querySelector('.time-input').value,
+        task: r.querySelector('.task-input').value
+    }));
+
+    try {
+        const planRef = doc(db, "plans", currentDocId);
+        await updateDoc(planRef, {
+            "plan.timetable": updatedTimetable
+        });
+        console.log("Timetable saved.");
+    } catch (err) {
+        console.error("Save error:", err);
+    }
+}
