@@ -15,6 +15,9 @@ const resultContainer = document.getElementById('result-container');
 const headerSection = document.getElementById('header-section');
 const logoHome = document.getElementById('logoHome');
 
+// Notes button
+const myNotesBtn = document.getElementById('my-notes-btn');
+
 let currentPlanData = null;
 let currentDocId = null;
 let timetablesContainer = null;
@@ -451,3 +454,10 @@ async function saveTimetableState() {
         console.error("Save error:", err);
     }
 }
+
+// ─── NOTES FUNCTIONALITY ─────────────────────────────────────────────
+
+// Navigate to notes page
+myNotesBtn.addEventListener('click', () => {
+    window.location.href = 'notes.html';
+});
