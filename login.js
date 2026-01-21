@@ -16,9 +16,9 @@ document.getElementById('loginBtn').onclick = () => {
       sessionStorage.removeItem("postLoginAction");
 
       if (action === "generate") {
-        window.location.href = "index.html?autoGenerate=true";
+        window.location.href = "app.html?autoGenerate=true";
       } else {
-        window.location.href = "index.html";
+        window.location.href = "app.html";
       }
     })
     .catch(err => alert(err.message));
@@ -31,9 +31,9 @@ document.getElementById('signupBtn').onclick = () => {
       sessionStorage.removeItem("postLoginAction");
 
       if (action === "generate") {
-        window.location.href = "index.html?autoGenerate=true";
+        window.location.href = "app.html?autoGenerate=true";
       } else {
-        window.location.href = "index.html";
+        window.location.href = "app.html";
       }
     })
     .catch(err => alert(err.message));
@@ -47,9 +47,9 @@ document.getElementById('googleBtn').onclick = () => {
       sessionStorage.removeItem("postLoginAction");
 
       if (action === "generate") {
-        window.location.href = "index.html?autoGenerate=true";
+        window.location.href = "app.html?autoGenerate=true";
       } else {
-        window.location.href = "index.html";
+        window.location.href = "app.html";
       }
     })
     .catch(err => alert(err.message));

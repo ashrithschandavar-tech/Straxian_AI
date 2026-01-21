@@ -35,7 +35,7 @@ onAuthStateChanged(auth, (user) => {
         loadNotes(user.uid);
 
         myTimetablesBtn.addEventListener('click', () => {
-            window.location.href = 'index.html';
+            window.location.href = 'app.html';
         });
     } else {
         authBtn.textContent = "Login / Sign Up";
@@ -46,11 +46,11 @@ onAuthStateChanged(auth, (user) => {
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────
 logoHome.addEventListener('click', () => {
-    window.location.href = 'index.html';
+    window.location.href = 'app.html';
 });
 
 newPlanBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
+    window.location.href = 'app.html';
 });
 
 myNotesBtn.addEventListener('click', () => {
@@ -74,7 +74,7 @@ function loadHistory(uid) {
             item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors truncate border-b border-gray-50 flex items-center gap-2";
             item.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
             item.onclick = () => {
-                window.location.href = 'index.html';
+                window.location.href = 'app.html';
             };
             historyList.appendChild(item);
         });
