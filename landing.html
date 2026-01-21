@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Straxian AI - From Goals to Execution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: #667eea;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+        .cta-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-gradient-to-br from-purple-600 to-pink-600 text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">S</div>
+                <span class="font-bold text-xl tracking-tight">Straxian <span class="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AI</span></span>
+            </div>
+            <button onclick="window.location.href='index.html'" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg text-white font-semibold rounded-lg transition-all transform hover:scale-105">
+                Get Started
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white py-24 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-5xl mx-auto text-center" data-aos="fade-up" data-aos-duration="1000">
+            <h1 class="text-5xl sm:text-6xl font-extrabold mb-6 leading-tight">
+                From Goals to <span class="text-yellow-300">Execution</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Straxian AI builds structured action systems to help you <span class="font-bold text-yellow-300">achieve consistently</span>.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="window.location.href='index.html'" class="cta-button px-8 py-3.5 text-white font-bold rounded-lg text-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rocket"></i> Start Building Your System
+                </button>
+                <button onclick="document.querySelector('#how-it-works').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-3.5 bg-white text-purple-600 font-bold rounded-lg text-lg hover:bg-gray-100 transition">
+                    Learn More
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Overview -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Everything You Need to Achieve</h2>
+                <p class="text-xl text-gray-600">Comprehensive tools designed for serious achievers</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Feature 1: Goals & Plans -->
+                <div class="feature-card bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-4xl mb-4"><i class="fa-solid fa-chess-knight text-indigo-600"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">AI Strategy Plans</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed">
+                        Enter your goal and get a complete structured plan with phases, milestones, and actionable steps.
+                    </p>
+                </div>
+
+                <!-- Feature 2: Timetables -->
+                <div class="feature-card bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-4xl mb-4"><i class="fa-solid fa-calendar-day text-purple-600"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Daily Execution</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed">
+                        Generate personalized daily timetables and turn your strategy into a concrete daily routine.
+                    </p>
+                </div>
+
+                <!-- Feature 3: Notes -->
+                <div class="feature-card bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-2xl" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-4xl mb-4"><i class="fa-solid fa-sticky-note text-yellow-600"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Persistent Notes</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed">
+                        Keep detailed notes, insights, and reflections. Everything saves to your account automatically.
+                    </p>
+                </div>
+
+                <!-- Feature 4: Resources -->
+                <div class="feature-card bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl" data-aos="fade-up" data-aos-delay="400">
+                    <div class="text-4xl mb-4"><i class="fa-solid fa-book-open text-green-600"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Curated Resources</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed">
+                        Get hand-picked books, courses, and tools tailored to your specific goal and journey.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-4xl font-extrabold mb-4">How It Works</h2>
+                <p class="text-xl text-gray-300">Three simple steps from idea to execution</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Step 1 -->
+                <div class="flex gap-8 items-start" data-aos="fade-right" data-aos-delay="100">
+                    <div class="text-5xl font-bold step-number min-w-24">01</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-target text-yellow-400"></i> Define Your Goal
+                        </h3>
+                        <p class="text-gray-300 text-lg">Tell us what you want to achieve. Whether it's mastering a skill, reaching fitness goals, or completing a project—be as specific as possible.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="flex gap-8 items-start" data-aos="fade-right" data-aos-delay="200">
+                    <div class="text-5xl font-bold step-number min-w-24">02</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Get Your System
+                        </h3>
+                        <p class="text-gray-300 text-lg">Our AI generates a complete action system: strategic milestones, daily habits, a personalized timetable, resources, and solutions to common hurdles.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="flex gap-8 items-start" data-aos="fade-right" data-aos-delay="300">
+                    <div class="text-5xl font-bold step-number min-w-24">03</div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-rocket text-green-400"></i> Execute & Track
+                        </h3>
+                        <p class="text-gray-300 text-lg">Follow your daily timetable, take notes, track progress, and stay accountable. Your plan adapts as you learn and grow.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Straxian Works -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Why Straxian AI Works</h2>
+                <p class="text-xl text-gray-600">Built for people who actually want to achieve</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <div data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-purple-600 mt-1"><i class="fa-solid fa-check-circle"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Strategic Planning</h3>
+                            <p class="text-gray-700">Not just to-do lists. We help you build real systems with phases, milestones, and clear execution paths.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-purple-600 mt-1"><i class="fa-solid fa-check-circle"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Daily Execution</h3>
+                            <p class="text-gray-700">A complete daily timetable keeps you focused and accountable. Track what works, adjust what doesn't.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-purple-600 mt-1"><i class="fa-solid fa-check-circle"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">AI-Powered Insights</h3>
+                            <p class="text-gray-700">Our AI anticipates challenges, suggests habits, and recommends resources specific to your goal.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-purple-600 mt-1"><i class="fa-solid fa-check-circle"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Persistent Notes</h3>
+                            <p class="text-gray-700">Capture insights, learnings, and progress. Everything syncs to your account instantly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tagline Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+        <div class="max-w-4xl mx-auto text-center" data-aos="zoom-in">
+            <h2 class="text-4xl font-extrabold mb-4">
+                <i class="fa-solid fa-fire text-yellow-300"></i> Built for People Who Execute
+            </h2>
+            <p class="text-xl opacity-90">
+                <strong>Plan. Execute. Achieve.</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div class="max-w-3xl mx-auto text-center" data-aos="fade-up">
+            <h2 class="text-4xl font-extrabold text-gray-900 mb-6">Ready to Turn Your Goals Into Reality?</h2>
+            <p class="text-xl text-gray-600 mb-10">Join people who are achieving with systems, not wishful thinking.</p>
+            <button onclick="window.location.href='index.html'" class="cta-button px-10 py-4 text-white font-bold rounded-lg text-lg flex items-center justify-center gap-3 mx-auto">
+                <i class="fa-solid fa-rocket"></i> Start Your System Now
+            </button>
+            <p class="text-gray-500 mt-6">No credit card required. Sign in with Google.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-10 mb-10">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="bg-gradient-to-br from-purple-600 to-pink-600 text-white w-8 h-8 flex items-center justify-center rounded font-bold">S</div>
+                        <span class="font-bold text-white">Straxian AI</span>
+                    </div>
+                    <p class="text-sm">From Goals to Execution.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Product</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Features</a></li>
+                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">About</a></li>
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms</a></li>
+                        <li><a href="#" class="hover:text-white transition">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center">
+                <p class="text-sm">&copy; 2026 Straxian AI. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 sm:mt-0">
+                    <a href="#" class="hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-white transition"><i class="fab fa-github"></i></a>
+                    <a href="#" class="hover:text-white transition"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: false,
+            mirror: true
+        });
+    </script>
+</body>
+</html>
