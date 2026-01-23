@@ -164,13 +164,9 @@ function renderUI(plan, difficulty) {
     const ttList = document.getElementById('timetable-list');
     ttSection.classList.remove('hidden');
 
-    if (plan.timetable && plan.timetable.length > 0) {
-        renderTimetable(plan.timetable);
-        document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
-    } else {
-        ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click "Generate Daily Schedule" to build your routine.</p>';
-        document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
-    }
+    // Don't auto-generate timetable - wait for user to click the button
+    ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click "Generate Daily Schedule" to build your routine.</p>';
+    document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
 
     let warningsHtml = '';
     if (plan.categoryMismatch) {
@@ -343,11 +339,54 @@ Sortable.create(ttListEl, {
 });
 
 // Trigger Timetable Generation
-document.getElementById('generate-timetable-btn').addEventListener('click', () => {
-    if (!currentPlanData || !currentPlanData.timetable) return;
-    renderTimetable(currentPlanData.timetable);
-    document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
-    saveTimetableState();
+document.getElementById('generate-timetable-btn').addEventListener('click', async () => {
+    if (!currentPlanData) return;
+
+    const generateBtn = document.getElementById('generate-timetable-btn');
+    const ttList = document.getElementById('timetable-list');
+    
+    // Show loading state
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Generating...`;
+    ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Generating your daily schedule...</p>';
+
+    try {
+        // Request fresh timetable from AI
+        const aim = currentPlanData.title || 'Goal';
+        const today = new Date().toISOString().split('T')[0];
+        const prompt = `Act as an expert time management specialist. Generate a FRESH and DIFFERENT daily timetable.
+Goal: "${aim}". 
+Return ONLY a JSON object with:
+{
+  "timetable": [{"time": "08:00 AM", "task": "Activity"}, ...]
+}
+Make it realistic, detailed, and actionable with 10-15 time slots throughout the day.`;
+
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+
+        if (!response.ok) throw new Error('Failed to generate timetable');
+        const result = await response.json();
+        
+        if (result.timetable && result.timetable.length > 0) {
+            // Update current plan data with new timetable
+            currentPlanData.timetable = result.timetable;
+            renderTimetable(result.timetable);
+            generateBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+            saveTimetableState();
+        } else {
+            throw new Error('No timetable generated');
+        }
+    } catch (error) {
+        console.error('Timetable generation error:', error);
+        ttList.innerHTML = `<p class="text-center text-red-500 py-4">Error: ${error.message}. Please try again.</p>`;
+        generateBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
+    } finally {
+        generateBtn.disabled = false;
+    }
 });
 
 function renderTimetable(timetableData) {
