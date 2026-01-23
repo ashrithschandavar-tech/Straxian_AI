@@ -2,6 +2,87 @@ import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ─── DARK MODE INITIALIZATION ───────────────────────────────────────
+function initializeDarkMode() {
+  if (localStorage.getItem('darkMode') === 'true') {
+    applyDarkModeNotes();
+  }
+}
+
+function applyDarkModeNotes() {
+  document.documentElement.classList.add('dark');
+  document.body.classList.add('bg-gray-900', 'text-white');
+  document.body.classList.remove('bg-gray-50');
+  
+  document.querySelectorAll('.bg-white, .bg-gray-50').forEach(el => {
+    el.classList.remove('bg-white', 'bg-gray-50');
+    el.classList.add('bg-gray-800');
+  });
+  
+  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-gray-900, .text-gray-400').forEach(el => {
+    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600', 'text-gray-500', 'text-gray-900', 'text-gray-400');
+    el.classList.add('text-gray-100');
+  });
+  
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
+    el.classList.remove('bg-white', 'border-gray-200');
+  });
+  
+  const nav = document.querySelector('nav');
+  if (nav) {
+    nav.classList.remove('bg-white', 'shadow-sm');
+    nav.classList.add('bg-gray-800', 'border-gray-700');
+  }
+  
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('bg-white');
+    sidebar.classList.add('bg-gray-800');
+  }
+  
+  addDarkModeNotesStyles();
+}
+
+function addDarkModeNotesStyles() {
+  if (!document.getElementById('dark-mode-notes-styles')) {
+    const style = document.createElement('style');
+    style.id = 'dark-mode-notes-styles';
+    style.textContent = `
+      :root.dark {
+        color-scheme: dark;
+      }
+      :root.dark input:focus, :root.dark select:focus, :root.dark textarea:focus {
+        border-color: #eab308;
+      }
+      :root.dark .bg-yellow-50 {
+        background-color: #374151;
+      }
+      :root.dark .bg-red-100 {
+        background-color: #7f1d1d;
+      }
+      :root.dark .text-red-600 {
+        color: #fca5a5;
+      }
+      :root.dark .border-gray-200, :root.dark .border-gray-100, :root.dark .border-b-2, :root.dark .border-b {
+        border-color: #4b5563;
+      }
+      :root.dark .hover\:border-yellow-500:hover {
+        border-color: #eab308;
+      }
+      :root.dark .shadow-lg {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+      }
+      :root.dark .text-yellow-700 {
+        color: #fcd34d;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+initializeDarkMode();
+
 const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');

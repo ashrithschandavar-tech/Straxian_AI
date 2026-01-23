@@ -15,14 +15,22 @@ function applyDarkModeApp() {
   document.body.classList.add('bg-gray-900', 'text-white');
   document.body.classList.remove('bg-gray-50');
   
+  // Update all white cards and containers
   document.querySelectorAll('.bg-white').forEach(el => {
     el.classList.remove('bg-white');
     el.classList.add('bg-gray-800');
   });
   
-  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-gray-900').forEach(el => {
-    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600', 'text-gray-500', 'text-gray-900');
+  // Update text colors for multiple gray variants
+  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-gray-900, .text-gray-400').forEach(el => {
+    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600', 'text-gray-500', 'text-gray-900', 'text-gray-400');
     el.classList.add('text-gray-100');
+  });
+  
+  // Update gray bg variants
+  document.querySelectorAll('.bg-gray-50, .bg-gray-100').forEach(el => {
+    el.classList.remove('bg-gray-50', 'bg-gray-100');
+    el.classList.add('bg-gray-700');
   });
   
   document.querySelectorAll('input, select').forEach(el => {
@@ -30,16 +38,23 @@ function applyDarkModeApp() {
     el.classList.remove('bg-white', 'border-gray-200');
   });
   
+  // Update nav
   const nav = document.querySelector('nav');
   if (nav) {
-    nav.classList.remove('bg-white', 'shadow-md');
+    nav.classList.remove('bg-white', 'shadow-md', 'shadow-sm');
     nav.classList.add('bg-gray-800', 'border-gray-700');
   }
   
+  // Update sidebar
   const sidebar = document.getElementById('sidebar');
   if (sidebar) {
     sidebar.classList.remove('bg-white');
     sidebar.classList.add('bg-gray-800');
+    
+    // Update sidebar buttons
+    sidebar.querySelectorAll('button').forEach(btn => {
+      btn.classList.add('dark-mode-btn');
+    });
   }
   
   addDarkModeStyles();
@@ -63,17 +78,28 @@ function addDarkModeStyles() {
       :root.dark button:hover {
         background-color: #4338ca;
       }
-      :root.dark .bg-gray-50 {
-        background-color: #111827;
+      :root.dark .bg-gray-50, :root.dark .bg-gray-100 {
+        background-color: #374151;
       }
-      :root.dark .border-gray-200, :root.dark .border-gray-100 {
-        border-color: #374151;
-      }
-      :root.dark .text-gray-400 {
-        color: #9ca3af;
+      :root.dark .border-gray-200, :root.dark .border-gray-100, :root.dark .border-b {
+        border-color: #4b5563;
       }
       :root.dark .shadow-sm, :root.dark .shadow-md, :root.dark .shadow-lg, :root.dark .shadow-xl {
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+      }
+      :root.dark .hover\:bg-indigo-50:hover {
+        background-color: #374151;
+      }
+      :root.dark .hover\:bg-yellow-50:hover {
+        background-color: #374151;
+      }
+      :root.dark #my-timetables-btn {
+        background-color: #374151;
+        color: #e0e7ff;
+      }
+      :root.dark #my-notes-btn {
+        background-color: #374151;
+        color: #fcd34d;
       }
     `;
     document.head.appendChild(style);
