@@ -18,7 +18,7 @@ const securityContent = document.getElementById('securityContent');
 const dropdownArrow = document.getElementById('dropdownArrow');
 
 // Security Settings Toggle
-let isSecurityOpen = true;
+let isSecurityOpen = false;
 securityToggle.addEventListener('click', () => {
   isSecurityOpen = !isSecurityOpen;
   if (isSecurityOpen) {
