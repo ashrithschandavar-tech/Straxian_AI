@@ -55,7 +55,7 @@ function addDarkModeNotesStyles() {
       :root.dark input:focus, :root.dark select:focus, :root.dark textarea:focus {
         border-color: #eab308;
       }
-      :root.dark .bg-yellow-50 {
+      :root.dark .bg-yellow-50, :root.dark .bg-gray-50, :root.dark .bg-indigo-50 {
         background-color: #374151;
       }
       :root.dark .bg-red-100 {
@@ -75,6 +75,26 @@ function addDarkModeNotesStyles() {
       }
       :root.dark .text-yellow-700 {
         color: #fcd34d;
+      }
+      :root.dark #my-timetables-btn {
+        background-color: #4b5563;
+        color: #e0e7ff;
+      }
+      :root.dark #my-timetables-btn:hover {
+        background-color: #5a6b7f;
+      }
+      :root.dark #my-notes-btn {
+        background-color: #4b5563;
+        color: #fcd34d;
+      }
+      :root.dark #my-notes-btn:hover {
+        background-color: #5a6b7f;
+      }
+      :root.dark .hover\:bg-indigo-100:hover {
+        background-color: #4b5563;
+      }
+      :root.dark .text-indigo-700 {
+        color: #e0e7ff;
       }
     `;
     document.head.appendChild(style);

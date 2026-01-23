@@ -78,7 +78,10 @@ function addDarkModeStyles() {
       :root.dark button:hover {
         background-color: #4338ca;
       }
-      :root.dark .bg-gray-50, :root.dark .bg-gray-100 {
+      :root.dark .bg-gray-50, :root.dark .bg-gray-100, :root.dark .bg-indigo-50, :root.dark .bg-indigo-100, :root.dark .bg-blue-50, :root.dark .bg-amber-100 {
+        background-color: #374151;
+      }
+      :root.dark .bg-gradient-to-br, :root.dark .bg-gradient-to-t {
         background-color: #374151;
       }
       :root.dark .border-gray-200, :root.dark .border-gray-100, :root.dark .border-b {
@@ -87,18 +90,30 @@ function addDarkModeStyles() {
       :root.dark .shadow-sm, :root.dark .shadow-md, :root.dark .shadow-lg, :root.dark .shadow-xl {
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
       }
-      :root.dark .hover\:bg-indigo-50:hover {
-        background-color: #374151;
+      :root.dark .hover\:bg-indigo-50:hover, :root.dark .hover\:bg-indigo-100:hover {
+        background-color: #4b5563;
       }
-      :root.dark .hover\:bg-yellow-50:hover {
-        background-color: #374151;
+      :root.dark .hover\:bg-amber-100:hover {
+        background-color: #4b5563;
       }
       :root.dark #my-timetables-btn {
-        background-color: #374151;
+        background-color: #4b5563;
         color: #e0e7ff;
       }
+      :root.dark #my-timetables-btn:hover {
+        background-color: #5a6b7f;
+      }
       :root.dark #my-notes-btn {
-        background-color: #374151;
+        background-color: #4b5563;
+        color: #fcd34d;
+      }
+      :root.dark #my-notes-btn:hover {
+        background-color: #5a6b7f;
+      }
+      :root.dark .text-indigo-700 {
+        color: #e0e7ff;
+      }
+      :root.dark .text-amber-700 {
         color: #fcd34d;
       }
     `;
