@@ -114,6 +114,9 @@ function showPasswordMessage(message, type) {
   }`;
 }
 
+// Track which dropdown is currently open
+let currentOpenDropdown = null;
+
 // Generic toggle function for all sections
 function createToggle(toggleId, contentId, arrowId) {
   const toggle = document.getElementById(toggleId);
@@ -122,20 +125,36 @@ function createToggle(toggleId, contentId, arrowId) {
   let isOpen = false;
 
   toggle.addEventListener('click', () => {
-    isOpen = !isOpen;
+    // If this dropdown is already open, just close it
     if (isOpen) {
-      content.style.maxHeight = '1000px';
-      content.style.opacity = '1';
-      arrow.style.transform = 'rotate(0deg)';
-    } else {
+      isOpen = false;
       content.style.maxHeight = '0px';
       content.style.opacity = '0';
       arrow.style.transform = 'rotate(-90deg)';
+      currentOpenDropdown = null;
+      return;
     }
+    
+    // Close the currently open dropdown (if any)
+    if (currentOpenDropdown && currentOpenDropdown !== toggleId) {
+      const prevContent = document.getElementById(currentOpenDropdown.contentId);
+      const prevArrow = document.getElementById(currentOpenDropdown.arrowId);
+      prevContent.style.maxHeight = '0px';
+      prevContent.style.opacity = '0';
+      prevArrow.style.transform = 'rotate(-90deg)';
+    }
+    
+    // Open this dropdown
+    isOpen = true;
+    content.style.maxHeight = '1000px';
+    content.style.opacity = '1';
+    arrow.style.transform = 'rotate(0deg)';
+    currentOpenDropdown = { contentId, arrowId };
   });
 }
 
 // Create toggles for all sections
+createToggle('securityToggle', 'securityContent', 'dropdownArrow');
 createToggle('notificationsToggle', 'notificationsContent', 'notificationsArrow');
 createToggle('preferencesToggle', 'preferencesContent', 'preferencesArrow');
 createToggle('dataToggle', 'dataContent', 'dataArrow');
@@ -349,14 +368,7 @@ document.getElementById('savePreferencesBtn').addEventListener('click', () => {
 });
 
 // Two-Factor Authentication
-document.getElementById('twoFactorToggle').addEventListener('change', () => {
-  const isEnabled = document.getElementById('twoFactorToggle').checked;
-  if (isEnabled) {
-    showPasswordMessage('Two-Factor Authentication enabled! Check your email for setup instructions.', 'success');
-  } else {
-    showPasswordMessage('Two-Factor Authentication disabled.', 'success');
-  }
-});
+// Removed - not implemented yet
 
 // Load plans from Firebase and display them
 function loadPlansForDownload() {
