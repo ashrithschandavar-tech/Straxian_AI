@@ -335,7 +335,37 @@ Sortable.create(ttListEl, {
     handle: '.drag-handle',
     animation: 150,
     ghostClass: 'bg-indigo-50',
-    onEnd: () => saveTimetableState()
+    onEnd: (evt) => {
+        // Auto-adjust time based on surrounding slots
+        const rows = Array.from(ttListEl.querySelectorAll('.timetable-row'));
+        const draggedRow = rows[evt.newIndex];
+        
+        if (!draggedRow) return;
+
+        const prevRow = rows[evt.newIndex - 1];
+        const nextRow = rows[evt.newIndex + 1];
+
+        if (prevRow && nextRow) {
+            // Slot is between two other slots
+            const prevTime = prevRow.querySelector('.time-input').value;
+            const nextTime = nextRow.querySelector('.time-input').value;
+            const midTime = calculateMidpointTime(prevTime, nextTime);
+            draggedRow.querySelector('.time-input').value = midTime;
+        } else if (prevRow) {
+            // Slot is after another slot
+            const prevTime = prevRow.querySelector('.time-input').value;
+            const newTime = addMinutesToTime(prevTime, 30);
+            draggedRow.querySelector('.time-input').value = newTime;
+        } else if (nextRow) {
+            // Slot is before another slot
+            const nextTime = nextRow.querySelector('.time-input').value;
+            const newTime = subtractMinutesFromTime(nextTime, 30);
+            draggedRow.querySelector('.time-input').value = newTime;
+        }
+
+        resortRows();
+        saveTimetableState();
+    }
 });
 
 // Trigger Timetable Generation
@@ -443,6 +473,47 @@ function compareTimes(t1, t2) {
         return parseInt(hours, 10) * 60 + parseInt(minutes || 0, 10);
     };
     return parseTime(t1) - parseTime(t2);
+}
+
+// Helper function to parse time to minutes since midnight
+function timeToMinutes(timeStr) {
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':');
+    hours = parseInt(hours, 10);
+    minutes = parseInt(minutes || 0, 10);
+    if (hours === 12) hours = 0;
+    if (modifier === 'PM') hours += 12;
+    return hours * 60 + minutes;
+}
+
+// Helper function to convert minutes since midnight back to time string
+function minutesToTime(mins) {
+    let hours = Math.floor(mins / 60);
+    let minutes = mins % 60;
+    const modifier = hours >= 12 ? 'PM' : 'AM';
+    if (hours > 12) hours -= 12;
+    if (hours === 0) hours = 12;
+    return `${hours}:${String(minutes).padStart(2, '0')} ${modifier}`;
+}
+
+// Calculate midpoint time between two times
+function calculateMidpointTime(time1, time2) {
+    const mins1 = timeToMinutes(time1);
+    const mins2 = timeToMinutes(time2);
+    const midpoint = Math.round((mins1 + mins2) / 2);
+    return minutesToTime(midpoint);
+}
+
+// Add minutes to a time
+function addMinutesToTime(timeStr, minutesToAdd) {
+    const mins = timeToMinutes(timeStr);
+    return minutesToTime(mins + minutesToAdd);
+}
+
+// Subtract minutes from a time
+function subtractMinutesFromTime(timeStr, minutesToSubtract) {
+    const mins = timeToMinutes(timeStr);
+    return minutesToTime(Math.max(0, mins - minutesToSubtract));
 }
 
 function resortRows() {
