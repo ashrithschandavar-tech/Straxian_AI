@@ -136,7 +136,6 @@ function createToggle(toggleId, contentId, arrowId) {
 
 // Create toggles for all sections
 createToggle('notificationsToggle', 'notificationsContent', 'notificationsArrow');
-createToggle('privacyToggle', 'privacyContent', 'privacyArrow');
 createToggle('preferencesToggle', 'preferencesContent', 'preferencesArrow');
 createToggle('dataToggle', 'dataContent', 'dataArrow');
 createToggle('dangerToggle', 'dangerContent', 'dangerArrow');
@@ -149,15 +148,75 @@ function loadPreferences() {
   if (document.getElementById('pushNotif')) document.getElementById('pushNotif').checked = prefs.pushNotif !== false;
   if (document.getElementById('reminderNotif')) document.getElementById('reminderNotif').checked = prefs.reminderNotif !== false;
   if (document.getElementById('achievementNotif')) document.getElementById('achievementNotif').checked = prefs.achievementNotif !== false;
-  if (document.getElementById('profilePublic')) document.getElementById('profilePublic').checked = prefs.profilePublic === true;
-  if (document.getElementById('shareProgress')) document.getElementById('shareProgress').checked = prefs.shareProgress === true;
-  if (document.getElementById('dataCollection')) document.getElementById('dataCollection').checked = prefs.dataCollection !== false;
   if (document.getElementById('themeSelect')) document.getElementById('themeSelect').value = prefs.theme || 'Light Mode';
   if (document.getElementById('languageSelect')) document.getElementById('languageSelect').value = prefs.language || 'English';
   if (document.getElementById('timezoneSelect')) document.getElementById('timezoneSelect').value = prefs.timezone || 'UTC';
+  
+  // Apply dark mode if saved
+  if (prefs.theme === 'Dark Mode') {
+    applyDarkMode();
+  }
 }
 
 loadPreferences();
+
+// Dark Mode Implementation
+function applyDarkMode() {
+  document.documentElement.classList.add('dark');
+  document.body.classList.add('bg-gray-900', 'text-white');
+  
+  // Update all cards
+  document.querySelectorAll('.bg-white').forEach(el => {
+    el.classList.remove('bg-white');
+    el.classList.add('bg-gray-800');
+  });
+  
+  // Update text colors
+  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600').forEach(el => {
+    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600');
+    el.classList.add('text-white');
+  });
+  
+  // Update nav
+  const nav = document.querySelector('nav');
+  if (nav) {
+    nav.classList.remove('bg-white');
+    nav.classList.add('bg-gray-800', 'border-gray-700');
+  }
+  
+  // Update inputs
+  document.querySelectorAll('input, select').forEach(el => {
+    el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
+    el.classList.remove('bg-white', 'border-gray-200');
+  });
+}
+
+function removeDarkMode() {
+  document.documentElement.classList.remove('dark');
+  location.reload(); // Reload to reset styles
+}
+
+// Theme selector change
+document.getElementById('themeSelect').addEventListener('change', (e) => {
+  const theme = e.target.value;
+  if (theme === 'Dark Mode') {
+    applyDarkMode();
+  } else {
+    removeDarkMode();
+  }
+});
+
+// Add dark mode styles
+const style = document.createElement('style');
+style.textContent = `
+  :root.dark {
+    color-scheme: dark;
+  }
+  :root.dark input:focus, :root.dark select:focus {
+    border-color: #4f46e5;
+  }
+`;
+document.head.appendChild(style);
 
 // Save Notification Preferences
 document.getElementById('saveNotifBtn').addEventListener('click', () => {
@@ -218,37 +277,106 @@ document.getElementById('twoFactorToggle').addEventListener('change', () => {
   }
 });
 
-// Export Data
-document.getElementById('exportDataBtn').addEventListener('click', () => {
-  const msg = document.getElementById('dataMessage');
-  msg.textContent = 'Preparing your data for export...';
-  msg.className = 'text-center text-sm mt-2 text-blue-600 font-semibold';
+// Load plans from localStorage and display them
+function loadPlansForDownload() {
+  const plans = JSON.parse(localStorage.getItem('allPlans')) || {};
+  const plansCheckboxes = document.getElementById('plansCheckboxes');
+  const selectContainer = document.getElementById('plansSelectContainer');
+  const noPlansMessage = document.getElementById('noPlansMessage');
   
-  setTimeout(() => {
-    msg.textContent = 'Export started! Check your downloads folder.';
-    msg.className = 'text-center text-sm mt-2 text-green-600 font-semibold';
-    
-    // Simulate file download
-    const data = { user: auth.currentUser.email, preferences: localStorage.getItem('userPreferences') };
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'straxian-data.json';
-    link.click();
-  }, 1500);
-});
+  if (Object.keys(plans).length === 0) {
+    selectContainer.classList.add('hidden');
+    noPlansMessage.classList.remove('hidden');
+    return;
+  }
+  
+  selectContainer.classList.remove('hidden');
+  noPlansMessage.classList.add('hidden');
+  plansCheckboxes.innerHTML = '';
+  
+  Object.keys(plans).forEach((planKey, index) => {
+    const planTitle = plans[planKey].aim || 'Plan ' + (index + 1);
+    const checkbox = document.createElement('label');
+    checkbox.className = 'flex items-center gap-2 cursor-pointer';
+    checkbox.innerHTML = `
+      <input type="checkbox" data-plan="${planKey}" class="plan-checkbox w-4 h-4 text-orange-600 rounded">
+      <span class="text-sm text-gray-700">${planTitle}</span>
+    `;
+    plansCheckboxes.appendChild(checkbox);
+  });
+  
+  // Add "Select All" option
+  const selectAllLabel = document.createElement('label');
+  selectAllLabel.className = 'flex items-center gap-2 cursor-pointer font-semibold mt-3 pt-2 border-t border-gray-300';
+  selectAllLabel.innerHTML = `
+    <input id="selectAllPlans" type="checkbox" class="w-4 h-4 text-orange-600 rounded">
+    <span class="text-sm text-gray-700">Select All Plans</span>
+  `;
+  plansCheckboxes.appendChild(selectAllLabel);
+  
+  document.getElementById('selectAllPlans').addEventListener('change', (e) => {
+    document.querySelectorAll('.plan-checkbox').forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+}
 
-// Download Plans as PDF
+loadPlansForDownload();
+
+// Download Selected Plans as PDF
 document.getElementById('downloadPlansBtn').addEventListener('click', () => {
+  const selectedCheckboxes = document.querySelectorAll('.plan-checkbox:checked');
+  
+  if (selectedCheckboxes.length === 0) {
+    const msg = document.getElementById('dataMessage');
+    msg.textContent = 'Please select at least one plan to download!';
+    msg.className = 'text-center text-sm mt-2 text-red-600 font-semibold';
+    return;
+  }
+  
   const msg = document.getElementById('dataMessage');
   msg.textContent = 'Generating PDF...';
   msg.className = 'text-center text-sm mt-2 text-blue-600 font-semibold';
   
+  const plans = JSON.parse(localStorage.getItem('allPlans')) || {};
+  let pdfContent = 'STRAXIAN AI - YOUR STRATEGY PLANS\n\n';
+  pdfContent += '=' .repeat(50) + '\n\n';
+  
+  selectedCheckboxes.forEach((checkbox, index) => {
+    const planKey = checkbox.getAttribute('data-plan');
+    const plan = plans[planKey];
+    
+    pdfContent += `PLAN ${index + 1}: ${plan.aim}\n`;
+    pdfContent += '-'.repeat(50) + '\n\n';
+    pdfContent += `Category: ${plan.category}\n`;
+    pdfContent += `Difficulty: ${plan.difficulty}\n`;
+    pdfContent += `Due Date: ${plan.dueDate}\n\n`;
+    
+    if (plan.phases) {
+      pdfContent += 'PHASES:\n';
+      plan.phases.forEach((phase, i) => {
+        pdfContent += `  ${i + 1}. ${phase}\n`;
+      });
+      pdfContent += '\n';
+    }
+    
+    pdfContent += '\n' + '='.repeat(50) + '\n\n';
+  });
+  
+  pdfContent += 'Generated on: ' + new Date().toLocaleString() + '\n';
+  
   setTimeout(() => {
-    msg.textContent = 'PDF downloaded successfully!';
+    const blob = new Blob([pdfContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'straxian-plans.txt';
+    link.click();
+    
+    msg.textContent = 'Plans downloaded successfully!';
     msg.className = 'text-center text-sm mt-2 text-green-600 font-semibold';
+    
+    setTimeout(() => msg.textContent = '', 3000);
   }, 1500);
 });
 

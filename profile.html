@@ -120,37 +120,6 @@
     </div>
 
     <div class="bg-white rounded-3xl shadow-xl p-8 mt-6">
-      <button id="privacyToggle" class="w-full text-left flex items-center justify-between py-2 px-4 hover:bg-gray-50 rounded-lg transition">
-        <h3 class="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-shield text-green-600"></i>
-          Privacy Settings
-        </h3>
-        <i id="privacyArrow" class="fa-solid fa-chevron-down text-gray-600 transition-transform duration-300"></i>
-      </button>
-
-      <div id="privacyContent" class="space-y-4 mt-6 max-h-96 overflow-hidden transition-all duration-300 opacity-0" style="max-height: 0;">
-        <div class="space-y-3">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input id="profilePublic" type="checkbox" class="w-4 h-4 text-green-600 rounded">
-            <span class="text-sm font-semibold text-gray-700">Make Profile Public</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input id="shareProgress" type="checkbox" class="w-4 h-4 text-green-600 rounded">
-            <span class="text-sm font-semibold text-gray-700">Share Progress with Friends</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input id="dataCollection" type="checkbox" checked class="w-4 h-4 text-green-600 rounded">
-            <span class="text-sm font-semibold text-gray-700">Allow Analytics & Improvements</span>
-          </label>
-        </div>
-        <button id="savePrivacyBtn" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02] mt-4">
-          Save Privacy Settings
-        </button>
-        <p id="privacyMessage" class="text-center text-sm mt-2"></p>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-3xl shadow-xl p-8 mt-6">
       <button id="preferencesToggle" class="w-full text-left flex items-center justify-between py-2 px-4 hover:bg-gray-50 rounded-lg transition">
         <h3 class="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
           <i class="fa-solid fa-sliders text-purple-600"></i>
@@ -201,18 +170,22 @@
       <button id="dataToggle" class="w-full text-left flex items-center justify-between py-2 px-4 hover:bg-gray-50 rounded-lg transition">
         <h3 class="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
           <i class="fa-solid fa-download text-orange-600"></i>
-          Data & Export
+          Save Plans
         </h3>
         <i id="dataArrow" class="fa-solid fa-chevron-down text-gray-600 transition-transform duration-300"></i>
       </button>
 
       <div id="dataContent" class="space-y-4 mt-6 max-h-96 overflow-hidden transition-all duration-300 opacity-0" style="max-height: 0;">
-        <p class="text-sm text-gray-600">Download or manage your personal data</p>
-        <button id="exportDataBtn" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
-          <i class="fa-solid fa-download mr-2"></i>Export All My Data
-        </button>
-        <button id="downloadPlansBtn" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
-          <i class="fa-solid fa-file-pdf mr-2"></i>Download Plans as PDF
+        <p class="text-sm text-gray-600">Download your strategy plans as PDF</p>
+        <div id="plansSelectContainer" class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2 hidden">
+          <p class="text-xs text-gray-500">Select plans to download:</p>
+          <div id="plansCheckboxes"></div>
+        </div>
+        <div id="noPlansMessage" class="text-center text-gray-500 py-4">
+          <p>No plans available yet. Create a plan in the app to download it.</p>
+        </div>
+        <button id="downloadPlansBtn" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
+          <i class="fa-solid fa-file-pdf mr-2"></i>Download Selected as PDF
         </button>
         <p id="dataMessage" class="text-center text-sm mt-2"></p>
       </div>
@@ -221,14 +194,14 @@
     <div class="bg-white rounded-3xl shadow-xl p-8 mt-6 border border-red-200">
       <button id="dangerToggle" class="w-full text-left flex items-center justify-between py-2 px-4 hover:bg-red-50 rounded-lg transition">
         <h3 class="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-          <i class="fa-solid fa-trash text-red-600"></i>
-          Danger Zone
+          <i class="fa-solid fa-lock-open text-red-600"></i>
+          Account Actions
         </h3>
         <i id="dangerArrow" class="fa-solid fa-chevron-down text-gray-600 transition-transform duration-300"></i>
       </button>
 
       <div id="dangerContent" class="space-y-4 mt-6 max-h-96 overflow-hidden transition-all duration-300 opacity-0" style="max-height: 0;">
-        <p class="text-sm text-gray-600">These actions cannot be undone</p>
+        <p class="text-sm text-gray-600">Permanent account changes</p>
         <button id="deleteAccountBtn" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
           <i class="fa-solid fa-exclamation-triangle mr-2"></i>Delete My Account Permanently
         </button>
