@@ -33,6 +33,17 @@ function applyDarkModeApp() {
     el.classList.add('bg-gray-700');
   });
   
+  // Update gradient backgrounds in sidebar
+  document.querySelectorAll('[class*="bg-gradient"]').forEach(el => {
+    el.style.backgroundColor = '#374151 !important';
+  });
+  
+  // Update sidebar header specifically
+  const sidebarHeader = document.querySelector('aside > div');
+  if (sidebarHeader) {
+    sidebarHeader.style.backgroundColor = '#374151';
+  }
+  
   document.querySelectorAll('input, select').forEach(el => {
     el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
     el.classList.remove('bg-white', 'border-gray-200');
@@ -79,10 +90,13 @@ function addDarkModeStyles() {
         background-color: #4338ca;
       }
       :root.dark .bg-gray-50, :root.dark .bg-gray-100, :root.dark .bg-indigo-50, :root.dark .bg-indigo-100, :root.dark .bg-blue-50, :root.dark .bg-amber-100 {
-        background-color: #374151;
+        background-color: #374151 !important;
       }
       :root.dark .bg-gradient-to-br, :root.dark .bg-gradient-to-t {
-        background-color: #374151;
+        background-color: #374151 !important;
+      }
+      :root.dark [style*="background"] {
+        background-color: #374151 !important;
       }
       :root.dark .border-gray-200, :root.dark .border-gray-100, :root.dark .border-b {
         border-color: #4b5563;
@@ -91,10 +105,10 @@ function addDarkModeStyles() {
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
       }
       :root.dark .hover\:bg-indigo-50:hover, :root.dark .hover\:bg-indigo-100:hover {
-        background-color: #4b5563;
+        background-color: #4b5563 !important;
       }
       :root.dark .hover\:bg-amber-100:hover {
-        background-color: #4b5563;
+        background-color: #4b5563 !important;
       }
       :root.dark #my-timetables-btn {
         background-color: #4b5563;
