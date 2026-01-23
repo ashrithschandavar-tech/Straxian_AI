@@ -2,6 +2,86 @@ import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ─── DARK MODE INITIALIZATION ───────────────────────────────────────
+function initializeDarkMode() {
+  if (localStorage.getItem('darkMode') === 'true') {
+    applyDarkModeApp();
+  }
+}
+
+function applyDarkModeApp() {
+  localStorage.setItem('darkMode', 'true');
+  document.documentElement.classList.add('dark');
+  document.body.classList.add('bg-gray-900', 'text-white');
+  document.body.classList.remove('bg-gray-50');
+  
+  document.querySelectorAll('.bg-white').forEach(el => {
+    el.classList.remove('bg-white');
+    el.classList.add('bg-gray-800');
+  });
+  
+  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500, .text-gray-900').forEach(el => {
+    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600', 'text-gray-500', 'text-gray-900');
+    el.classList.add('text-gray-100');
+  });
+  
+  document.querySelectorAll('input, select').forEach(el => {
+    el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
+    el.classList.remove('bg-white', 'border-gray-200');
+  });
+  
+  const nav = document.querySelector('nav');
+  if (nav) {
+    nav.classList.remove('bg-white', 'shadow-md');
+    nav.classList.add('bg-gray-800', 'border-gray-700');
+  }
+  
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('bg-white');
+    sidebar.classList.add('bg-gray-800');
+  }
+  
+  addDarkModeStyles();
+}
+
+function addDarkModeStyles() {
+  if (!document.getElementById('dark-mode-app-styles')) {
+    const style = document.createElement('style');
+    style.id = 'dark-mode-app-styles';
+    style.textContent = `
+      :root.dark {
+        color-scheme: dark;
+      }
+      :root.dark input:focus, :root.dark select:focus {
+        border-color: #4f46e5;
+      }
+      :root.dark button {
+        background-color: #4f46e5;
+        color: white;
+      }
+      :root.dark button:hover {
+        background-color: #4338ca;
+      }
+      :root.dark .bg-gray-50 {
+        background-color: #111827;
+      }
+      :root.dark .border-gray-200, :root.dark .border-gray-100 {
+        border-color: #374151;
+      }
+      :root.dark .text-gray-400 {
+        color: #9ca3af;
+      }
+      :root.dark .shadow-sm, :root.dark .shadow-md, :root.dark .shadow-lg, :root.dark .shadow-xl {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+initializeDarkMode();
+
 const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');

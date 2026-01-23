@@ -4,6 +4,7 @@ import {
   signOut, 
   updatePassword 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const nameEl = document.getElementById('name');
 const emailEl = document.getElementById('email');
@@ -153,7 +154,7 @@ function loadPreferences() {
   if (document.getElementById('timezoneSelect')) document.getElementById('timezoneSelect').value = prefs.timezone || 'UTC';
   
   // Apply dark mode if saved
-  if (prefs.theme === 'Dark Mode') {
+  if (localStorage.getItem('darkMode') === 'true' || prefs.theme === 'Dark Mode') {
     applyDarkMode();
   }
 }
@@ -162,43 +163,123 @@ loadPreferences();
 
 // Dark Mode Implementation
 function applyDarkMode() {
+  localStorage.setItem('darkMode', 'true');
   document.documentElement.classList.add('dark');
   document.body.classList.add('bg-gray-900', 'text-white');
+  document.body.classList.remove('bg-gray-50');
   
-  // Update all cards
+  // Update all white cards to dark
   document.querySelectorAll('.bg-white').forEach(el => {
-    el.classList.remove('bg-white');
-    el.classList.add('bg-gray-800');
+    if (!el.classList.contains('dark-mode-processed')) {
+      el.classList.remove('bg-white');
+      el.classList.add('bg-gray-800');
+      el.classList.add('dark-mode-processed');
+    }
   });
   
   // Update text colors
-  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600').forEach(el => {
-    el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600');
-    el.classList.add('text-white');
+  document.querySelectorAll('.text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500').forEach(el => {
+    if (!el.classList.contains('dark-mode-processed')) {
+      el.classList.remove('text-gray-800', 'text-gray-700', 'text-gray-600', 'text-gray-500');
+      el.classList.add('text-gray-100');
+      el.classList.add('dark-mode-processed');
+    }
   });
   
   // Update nav
   const nav = document.querySelector('nav');
-  if (nav) {
-    nav.classList.remove('bg-white');
-    nav.classList.add('bg-gray-800', 'border-gray-700');
+  if (nav && !nav.classList.contains('dark-mode-processed')) {
+    nav.classList.remove('bg-white', 'shadow-sm');
+    nav.classList.add('bg-gray-800', 'border-gray-700', 'dark-mode-processed');
   }
   
-  // Update inputs
+  // Update inputs and selects
   document.querySelectorAll('input, select').forEach(el => {
-    el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
-    el.classList.remove('bg-white', 'border-gray-200');
+    if (!el.classList.contains('dark-mode-processed')) {
+      el.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
+      el.classList.remove('bg-white', 'border-gray-200');
+      el.classList.add('dark-mode-processed');
+    }
   });
+  
+  // Update buttons
+  document.querySelectorAll('button').forEach(el => {
+    if (!el.classList.contains('dark-mode-processed') && !el.classList.contains('bg-red-600') && !el.classList.contains('bg-green-600') && !el.classList.contains('bg-blue-600') && !el.classList.contains('bg-orange-600') && !el.classList.contains('bg-purple-600') && !el.classList.contains('bg-indigo-600')) {
+      el.classList.add('dark-mode-processed');
+    }
+  });
+  
+  applyDarkModeCSS();
 }
 
 function removeDarkMode() {
+  localStorage.setItem('darkMode', 'false');
   document.documentElement.classList.remove('dark');
-  location.reload(); // Reload to reset styles
+  document.body.classList.remove('bg-gray-900', 'text-white');
+  document.body.classList.add('bg-gray-50');
+  
+  document.querySelectorAll('.dark-mode-processed').forEach(el => {
+    el.classList.remove('dark-mode-processed');
+  });
+  
+  document.querySelectorAll('.bg-gray-800').forEach(el => {
+    el.classList.remove('bg-gray-800');
+    el.classList.add('bg-white');
+  });
+  
+  document.querySelectorAll('.text-gray-100').forEach(el => {
+    el.classList.remove('text-gray-100');
+    el.classList.add('text-gray-800');
+  });
+  
+  const nav = document.querySelector('nav');
+  if (nav) {
+    nav.classList.remove('bg-gray-800', 'border-gray-700');
+    nav.classList.add('bg-white', 'shadow-sm');
+  }
+  
+  document.querySelectorAll('input, select').forEach(el => {
+    el.classList.remove('bg-gray-700', 'text-white', 'border-gray-600');
+    el.classList.add('bg-white', 'border-gray-200');
+  });
+  
+  // Remove dark mode CSS
+  const darkCss = document.getElementById('dark-mode-styles');
+  if (darkCss) darkCss.remove();
+}
+
+function applyDarkModeCSS() {
+  if (!document.getElementById('dark-mode-styles')) {
+    const style = document.createElement('style');
+    style.id = 'dark-mode-styles';
+    style.textContent = `
+      :root.dark {
+        color-scheme: dark;
+      }
+      :root.dark input:focus, :root.dark select:focus {
+        border-color: #4f46e5;
+      }
+      :root.dark button[class*="bg-indigo"], :root.dark button[class*="bg-red"], :root.dark button[class*="bg-blue"], :root.dark button[class*="bg-green"], :root.dark button[class*="bg-orange"], :root.dark button[class*="bg-purple"] {
+        filter: brightness(0.9);
+      }
+      :root.dark .border-gray-200 {
+        border-color: #374151;
+      }
+      :root.dark .shadow-xl {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      }
+    `;
+    document.head.appendChild(style);
+  }
 }
 
 // Theme selector change
 document.getElementById('themeSelect').addEventListener('change', (e) => {
   const theme = e.target.value;
+  const prefs = JSON.parse(localStorage.getItem('userPreferences')) || {};
+  prefs.theme = theme;
+  localStorage.setItem('userPreferences', JSON.stringify(prefs));
+  
   if (theme === 'Dark Mode') {
     applyDarkMode();
   } else {
@@ -277,46 +358,56 @@ document.getElementById('twoFactorToggle').addEventListener('change', () => {
   }
 });
 
-// Load plans from localStorage and display them
+// Load plans from Firebase and display them
 function loadPlansForDownload() {
-  const plans = JSON.parse(localStorage.getItem('allPlans')) || {};
-  const plansCheckboxes = document.getElementById('plansCheckboxes');
-  const selectContainer = document.getElementById('plansSelectContainer');
-  const noPlansMessage = document.getElementById('noPlansMessage');
-  
-  if (Object.keys(plans).length === 0) {
-    selectContainer.classList.add('hidden');
-    noPlansMessage.classList.remove('hidden');
-    return;
-  }
-  
-  selectContainer.classList.remove('hidden');
-  noPlansMessage.classList.add('hidden');
-  plansCheckboxes.innerHTML = '';
-  
-  Object.keys(plans).forEach((planKey, index) => {
-    const planTitle = plans[planKey].aim || 'Plan ' + (index + 1);
-    const checkbox = document.createElement('label');
-    checkbox.className = 'flex items-center gap-2 cursor-pointer';
-    checkbox.innerHTML = `
-      <input type="checkbox" data-plan="${planKey}" class="plan-checkbox w-4 h-4 text-orange-600 rounded">
-      <span class="text-sm text-gray-700">${planTitle}</span>
-    `;
-    plansCheckboxes.appendChild(checkbox);
-  });
-  
-  // Add "Select All" option
-  const selectAllLabel = document.createElement('label');
-  selectAllLabel.className = 'flex items-center gap-2 cursor-pointer font-semibold mt-3 pt-2 border-t border-gray-300';
-  selectAllLabel.innerHTML = `
-    <input id="selectAllPlans" type="checkbox" class="w-4 h-4 text-orange-600 rounded">
-    <span class="text-sm text-gray-700">Select All Plans</span>
-  `;
-  plansCheckboxes.appendChild(selectAllLabel);
-  
-  document.getElementById('selectAllPlans').addEventListener('change', (e) => {
-    document.querySelectorAll('.plan-checkbox').forEach(checkbox => {
-      checkbox.checked = e.target.checked;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      document.getElementById('noPlansMessage').classList.remove('hidden');
+      return;
+    }
+
+    const q = query(collection(db, "plans"), where("userId", "==", user.uid));
+    onSnapshot(q, (snapshot) => {
+      const plansCheckboxes = document.getElementById('plansCheckboxes');
+      const selectContainer = document.getElementById('plansSelectContainer');
+      const noPlansMessage = document.getElementById('noPlansMessage');
+      
+      if (snapshot.empty) {
+        selectContainer.classList.add('hidden');
+        noPlansMessage.classList.remove('hidden');
+        return;
+      }
+      
+      selectContainer.classList.remove('hidden');
+      noPlansMessage.classList.add('hidden');
+      plansCheckboxes.innerHTML = '';
+      
+      snapshot.forEach((doc, index) => {
+        const planData = doc.data();
+        const planTitle = planData.title || 'Plan ' + (index + 1);
+        const checkbox = document.createElement('label');
+        checkbox.className = 'flex items-center gap-2 cursor-pointer';
+        checkbox.innerHTML = `
+          <input type="checkbox" data-plan="${doc.id}" class="plan-checkbox w-4 h-4 text-orange-600 rounded">
+          <span class="text-sm text-gray-700">${planTitle}</span>
+        `;
+        plansCheckboxes.appendChild(checkbox);
+      });
+      
+      // Add "Select All" option
+      const selectAllLabel = document.createElement('label');
+      selectAllLabel.className = 'flex items-center gap-2 cursor-pointer font-semibold mt-3 pt-2 border-t border-gray-300';
+      selectAllLabel.innerHTML = `
+        <input id="selectAllPlans" type="checkbox" class="w-4 h-4 text-orange-600 rounded">
+        <span class="text-sm text-gray-700">Select All Plans</span>
+      `;
+      plansCheckboxes.appendChild(selectAllLabel);
+      
+      document.getElementById('selectAllPlans').addEventListener('change', (e) => {
+        document.querySelectorAll('.plan-checkbox').forEach(checkbox => {
+          checkbox.checked = e.target.checked;
+        });
+      });
     });
   });
 }
@@ -338,39 +429,29 @@ document.getElementById('downloadPlansBtn').addEventListener('click', () => {
   msg.textContent = 'Generating PDF...';
   msg.className = 'text-center text-sm mt-2 text-blue-600 font-semibold';
   
-  const plans = JSON.parse(localStorage.getItem('allPlans')) || {};
-  let pdfContent = 'STRAXIAN AI - YOUR STRATEGY PLANS\n\n';
-  pdfContent += '=' .repeat(50) + '\n\n';
-  
-  selectedCheckboxes.forEach((checkbox, index) => {
-    const planKey = checkbox.getAttribute('data-plan');
-    const plan = plans[planKey];
-    
-    pdfContent += `PLAN ${index + 1}: ${plan.aim}\n`;
-    pdfContent += '-'.repeat(50) + '\n\n';
-    pdfContent += `Category: ${plan.category}\n`;
-    pdfContent += `Difficulty: ${plan.difficulty}\n`;
-    pdfContent += `Due Date: ${plan.dueDate}\n\n`;
-    
-    if (plan.phases) {
-      pdfContent += 'PHASES:\n';
-      plan.phases.forEach((phase, i) => {
-        pdfContent += `  ${i + 1}. ${phase}\n`;
-      });
-      pdfContent += '\n';
-    }
-    
-    pdfContent += '\n' + '='.repeat(50) + '\n\n';
-  });
-  
-  pdfContent += 'Generated on: ' + new Date().toLocaleString() + '\n';
-  
   setTimeout(() => {
+    let pdfContent = 'STRAXIAN AI - YOUR STRATEGY PLANS\n\n';
+    pdfContent += '='.repeat(50) + '\n\n';
+    
+    let planCount = 0;
+    selectedCheckboxes.forEach((checkbox) => {
+      const planId = checkbox.getAttribute('data-plan');
+      const planTitle = checkbox.nextElementSibling.textContent;
+      planCount++;
+      
+      pdfContent += `PLAN ${planCount}: ${planTitle}\n`;
+      pdfContent += '-'.repeat(50) + '\n';
+      pdfContent += `Plan ID: ${planId}\n\n`;
+    });
+    
+    pdfContent += '\n' + '='.repeat(50) + '\n';
+    pdfContent += 'Generated on: ' + new Date().toLocaleString() + '\n';
+    
     const blob = new Blob([pdfContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'straxian-plans.txt';
+    link.download = 'straxian-plans-' + new Date().getTime() + '.txt';
     link.click();
     
     msg.textContent = 'Plans downloaded successfully!';
