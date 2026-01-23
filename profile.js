@@ -13,6 +13,24 @@ const newPasswordInput = document.getElementById('newPassword');
 const confirmPasswordInput = document.getElementById('confirmPassword');
 const updatePasswordBtn = document.getElementById('updatePasswordBtn');
 const passwordMessage = document.getElementById('passwordMessage');
+const securityToggle = document.getElementById('securityToggle');
+const securityContent = document.getElementById('securityContent');
+const dropdownArrow = document.getElementById('dropdownArrow');
+
+// Security Settings Toggle
+let isSecurityOpen = true;
+securityToggle.addEventListener('click', () => {
+  isSecurityOpen = !isSecurityOpen;
+  if (isSecurityOpen) {
+    securityContent.style.maxHeight = '500px';
+    securityContent.style.opacity = '1';
+    dropdownArrow.style.transform = 'rotate(0deg)';
+  } else {
+    securityContent.style.maxHeight = '0px';
+    securityContent.style.opacity = '0';
+    dropdownArrow.style.transform = 'rotate(-90deg)';
+  }
+});
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
