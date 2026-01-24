@@ -42,8 +42,12 @@ aside#sidebar {
 }
 
 /* Archive Tab Centering */
-#tabs-container.archive-mode {
+#tabs-container {
     display: flex;
+    gap: 0.5rem;
+}
+
+#tabs-container.archive-mode {
     justify-content: center;
 }
 
@@ -52,7 +56,8 @@ aside#sidebar {
 }
 
 #tabs-container.archive-mode #archive-tab {
-    max-width: 150px;
+    display: flex !important;
+    max-width: 120px;
 }
 
 /* --- MILESTONE STYLES --- */

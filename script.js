@@ -368,6 +368,16 @@ async function toggleArchive(docId, shouldArchive) {
         const planRef = doc(db, "plans", docId);
         await updateDoc(planRef, { archived: shouldArchive });
         console.log(shouldArchive ? "Plan archived" : "Plan unarchived");
+        
+        // If unarchiving, switch back to active tab
+        if (!shouldArchive && showArchive) {
+            showArchive = false;
+            activeTab.classList.add('bg-indigo-600', 'text-white');
+            activeTab.classList.remove('bg-gray-300', 'text-gray-700');
+            archiveTab.classList.remove('bg-indigo-600', 'text-white');
+            archiveTab.classList.add('bg-gray-300', 'text-gray-700');
+            document.getElementById('tabs-container').classList.remove('archive-mode');
+        }
     } catch (err) {
         console.error("Archive error:", err);
     }
