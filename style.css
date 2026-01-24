@@ -41,6 +41,20 @@ aside#sidebar {
     border-radius: 10px;
 }
 
+/* Archive Tab Centering */
+#tabs-container.archive-mode {
+    display: flex;
+    justify-content: center;
+}
+
+#tabs-container.archive-mode #active-tab {
+    display: none !important;
+}
+
+#tabs-container.archive-mode #archive-tab {
+    max-width: 150px;
+}
+
 /* --- MILESTONE STYLES --- */
 .milestone-card {
     background: white;

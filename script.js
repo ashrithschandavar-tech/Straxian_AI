@@ -189,6 +189,7 @@ activeTab.addEventListener('click', () => {
     activeTab.classList.remove('bg-gray-300', 'text-gray-700');
     archiveTab.classList.remove('bg-indigo-600', 'text-white');
     archiveTab.classList.add('bg-gray-300', 'text-gray-700');
+    document.getElementById('tabs-container').classList.remove('archive-mode');
     loadHistory(currentUserId);
 });
 
@@ -198,6 +199,7 @@ archiveTab.addEventListener('click', () => {
     archiveTab.classList.remove('bg-gray-300', 'text-gray-700');
     activeTab.classList.remove('bg-indigo-600', 'text-white');
     activeTab.classList.add('bg-gray-300', 'text-gray-700');
+    document.getElementById('tabs-container').classList.add('archive-mode');
     loadHistory(currentUserId);
 });
 
