@@ -225,16 +225,17 @@ newPlanBtn.addEventListener('click', resetUI);
 function loadHistory(uid) {
     const q = query(collection(db, "plans"), where("userId", "==", uid), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
-        // Check if there are any archived plans to show/hide archive tab
+        // Check if there are any archived plans
         let hasArchived = false;
         snapshot.forEach((doc) => {
             if (doc.data().archived) hasArchived = true;
         });
 
-        // Show/hide archive tab based on whether there are archived items
+        // Show/hide both tabs together - either show both or hide both
+        const tabsContainer = document.querySelector('.flex.gap-2.mb-3');
         if (hasArchived) {
-            archiveTab.style.display = 'block';
-        } else if (!showArchive) {
+            archiveTab.style.display = 'flex';
+        } else {
             archiveTab.style.display = 'none';
         }
 
