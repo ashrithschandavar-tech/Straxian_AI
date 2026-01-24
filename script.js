@@ -213,10 +213,16 @@ function loadHistory(uid) {
             item.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
             item.onclick = () => {
                 currentDocId = doc.id;
+                currentPlanData = data.plan;  // Store the plan data
                 inputCard.classList.add('hidden');
                 headerSection.classList.add('hidden');
                 if (timetablesContainer) timetablesContainer.classList.add('hidden');
                 renderUI(data.plan, data.difficulty);
+                // If timetable exists, render it
+                if (data.plan.timetable && data.plan.timetable.length > 0) {
+                    renderTimetable(data.plan.timetable);
+                    document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+                }
             };
             historyList.appendChild(item);
         });
@@ -278,6 +284,7 @@ generateBtn.addEventListener('click', async () => {
         });
 
         currentDocId = docRef.id;
+        currentPlanData = plan;  // Store the plan data
         renderUI(plan, difficulty);
 
     } catch (error) {
@@ -448,8 +455,14 @@ function loadTimetablesList(uid, container) {
 
             card.addEventListener('click', () => {
                 currentDocId = docSnap.id;
+                currentPlanData = plan;  // Store the plan data
                 renderUI(plan, data.difficulty || "Intermediate");
                 if (timetablesContainer) timetablesContainer.classList.add('hidden');
+                // If timetable exists, render it
+                if (plan.timetable && plan.timetable.length > 0) {
+                    renderTimetable(plan.timetable);
+                    document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+                }
             });
 
             fragment.appendChild(card);
@@ -541,7 +554,8 @@ Make it realistic, detailed, and actionable with 10-15 time slots throughout the
             currentPlanData.timetable = result.timetable;
             renderTimetable(result.timetable);
             generateBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
-            saveTimetableState();
+            // Save the updated timetable to Firestore
+            await saveTimetableState();
         } else {
             throw new Error('No timetable generated');
         }
@@ -679,7 +693,7 @@ document.getElementById('add-slot-btn').addEventListener('click', () => {
 });
 
 async function saveTimetableState() {
-    if (!currentDocId) return;
+    if (!currentDocId || !currentPlanData) return;
 
     const list = document.getElementById('timetable-list');
     const rows = Array.from(list.querySelectorAll('.timetable-row'));
@@ -689,12 +703,16 @@ async function saveTimetableState() {
         task: r.querySelector('.task-input').value
     }));
 
+    // Update the local currentPlanData
+    currentPlanData.timetable = updatedTimetable;
+
     try {
         const planRef = doc(db, "plans", currentDocId);
+        // Save entire plan object with updated timetable
         await updateDoc(planRef, {
-            "plan.timetable": updatedTimetable
+            plan: currentPlanData
         });
-        console.log("Timetable saved.");
+        console.log("Timetable saved successfully.");
     } catch (err) {
         console.error("Save error:", err);
     }
