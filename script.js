@@ -232,11 +232,12 @@ function loadHistory(uid) {
         });
 
         // Show/hide both tabs together - either show both or hide both
-        const tabsContainer = document.querySelector('.flex.gap-2.mb-3');
         if (hasArchived) {
             archiveTab.style.display = 'flex';
+            activeTab.style.display = 'flex';
         } else {
             archiveTab.style.display = 'none';
+            activeTab.style.display = 'none';
         }
 
         historyList.innerHTML = '';
