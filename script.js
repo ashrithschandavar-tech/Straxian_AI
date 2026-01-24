@@ -306,8 +306,7 @@ function showContextMenu(event, docId, data) {
     if (existingMenu) existingMenu.remove();
 
     const menu = document.createElement('div');
-    menu.className = "context-menu-popup absolute top-full right-0 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 mt-1 min-w-[150px] animate-fade-in";
-    menu.style.animation = "contextMenuFadeIn 0.15s ease-in-out";
+    menu.className = "context-menu-popup bg-white rounded-lg shadow-2xl border border-gray-200 z-50 min-w-[150px]";
     
     const isArchived = data.archived || false;
     const archiveText = isArchived ? "Unarchive" : "Archive";
@@ -337,15 +336,26 @@ function showContextMenu(event, docId, data) {
         }
     });
 
-    event.target.closest('button').parentElement.appendChild(menu);
+    // Position the menu near the clicked button
+    const buttonRect = event.target.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = (buttonRect.bottom + 5) + 'px';
+    menu.style.right = (window.innerWidth - buttonRect.right) + 'px';
+    menu.style.animation = 'contextMenuFadeIn 0.15s ease-in-out';
+
+    document.body.appendChild(menu);
 
     // Close menu when clicking outside
-    document.addEventListener('click', function closeMenu(e) {
-        if (!menu.contains(e.target) && e.target !== event.target) {
+    const closeMenu = (e) => {
+        if (!menu.contains(e.target)) {
             menu.remove();
             document.removeEventListener('click', closeMenu);
         }
-    });
+    };
+    
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+    }, 0);
 }
 
 // ─── ARCHIVE PLAN ────────────────────────────────────────────────────
