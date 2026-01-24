@@ -47,17 +47,8 @@ aside#sidebar {
     gap: 0.5rem;
 }
 
-#tabs-container.archive-mode {
-    justify-content: center;
-}
-
-#tabs-container.archive-mode #active-tab {
-    display: none !important;
-}
-
-#tabs-container.archive-mode #archive-tab {
-    display: flex !important;
-    max-width: 120px;
+#archive-tab {
+    text-align: center;
 }
 
 /* --- MILESTONE STYLES --- */
