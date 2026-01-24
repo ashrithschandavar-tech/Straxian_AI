@@ -225,6 +225,19 @@ newPlanBtn.addEventListener('click', resetUI);
 function loadHistory(uid) {
     const q = query(collection(db, "plans"), where("userId", "==", uid), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
+        // Check if there are any archived plans to show/hide archive tab
+        let hasArchived = false;
+        snapshot.forEach((doc) => {
+            if (doc.data().archived) hasArchived = true;
+        });
+
+        // Show/hide archive tab based on whether there are archived items
+        if (hasArchived) {
+            archiveTab.style.display = 'block';
+        } else if (!showArchive) {
+            archiveTab.style.display = 'none';
+        }
+
         historyList.innerHTML = '';
         if (snapshot.empty) {
             historyList.innerHTML = '<p class="text-xs text-gray-400 p-4 text-center">No saved plans.</p>';
@@ -255,10 +268,10 @@ function loadHistory(uid) {
             titleEl.className = "flex items-center gap-2 flex-1 cursor-pointer";
             titleEl.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
             
-            // 3-dot menu button
+            // 3-dot menu button (horizontal dots)
             const menuBtn = document.createElement('button');
-            menuBtn.className = "opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 relative";
-            menuBtn.innerHTML = '<i class="fa-solid fa-ellipsis-v"></i>';
+            menuBtn.className = "opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 relative z-40";
+            menuBtn.innerHTML = '<i class="fa-solid fa-ellipsis-h"></i>';
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showContextMenu(e, docId, data);
@@ -293,8 +306,8 @@ function showContextMenu(event, docId, data) {
     if (existingMenu) existingMenu.remove();
 
     const menu = document.createElement('div');
-    menu.className = "context-menu-popup absolute top-0 right-8 bg-white rounded-lg shadow-xl border border-gray-200 z-50 mt-0 min-w-[150px] animate-fade-in";
-    menu.style.animation = "fadeIn 0.2s ease-in-out";
+    menu.className = "context-menu-popup absolute top-full right-0 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 mt-1 min-w-[150px] animate-fade-in";
+    menu.style.animation = "contextMenuFadeIn 0.15s ease-in-out";
     
     const isArchived = data.archived || false;
     const archiveText = isArchived ? "Unarchive" : "Archive";
@@ -325,6 +338,14 @@ function showContextMenu(event, docId, data) {
     });
 
     event.target.closest('button').parentElement.appendChild(menu);
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenu(e) {
+        if (!menu.contains(e.target) && e.target !== event.target) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+        }
+    });
 }
 
 // ─── ARCHIVE PLAN ────────────────────────────────────────────────────
