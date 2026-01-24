@@ -1,6 +1,6 @@
 import { auth, db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ─── DARK MODE INITIALIZATION ───────────────────────────────────────
 function initializeDarkMode() {
@@ -142,6 +142,8 @@ const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
 const myTimetablesBtn = document.getElementById('my-timetables-btn');
+const activeTab = document.getElementById('active-tab');
+const archiveTab = document.getElementById('archive-tab');
 
 const generateBtn = document.getElementById('generate-btn');
 const inputCard = document.getElementById('input-card');
@@ -156,6 +158,8 @@ const myNotesBtn = document.getElementById('my-notes-btn');
 let currentPlanData = null;
 let currentDocId = null;
 let timetablesContainer = null;
+let currentUserId = null;
+let showArchive = false;  // Track which tab is active
 
 // ─── AUTH & SIDEBAR SYNC ─────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
@@ -165,6 +169,7 @@ onAuthStateChanged(auth, (user) => {
         authBtn.textContent = "Profile";
         authBtn.onclick = () => { window.location.href = "profile.html"; };
         sidebar.classList.remove('hidden');
+        currentUserId = user.uid;
         loadHistory(user.uid);
 
         myTimetablesBtn.addEventListener('click', () => {
@@ -175,6 +180,25 @@ onAuthStateChanged(auth, (user) => {
         authBtn.onclick = () => { window.location.href = "login.html"; };
         sidebar.classList.add('hidden');
     }
+});
+
+// ─── ARCHIVE/ACTIVE TAB SWITCHING ────────────────────────────────────
+activeTab.addEventListener('click', () => {
+    showArchive = false;
+    activeTab.classList.add('bg-indigo-600', 'text-white');
+    activeTab.classList.remove('bg-gray-300', 'text-gray-700');
+    archiveTab.classList.remove('bg-indigo-600', 'text-white');
+    archiveTab.classList.add('bg-gray-300', 'text-gray-700');
+    loadHistory(currentUserId);
+});
+
+archiveTab.addEventListener('click', () => {
+    showArchive = true;
+    archiveTab.classList.add('bg-indigo-600', 'text-white');
+    archiveTab.classList.remove('bg-gray-300', 'text-gray-700');
+    activeTab.classList.remove('bg-indigo-600', 'text-white');
+    activeTab.classList.add('bg-gray-300', 'text-gray-700');
+    loadHistory(currentUserId);
 });
 
 // ─── RESET APP ───────────────────────────────────────────────────────
@@ -206,27 +230,123 @@ function loadHistory(uid) {
             historyList.innerHTML = '<p class="text-xs text-gray-400 p-4 text-center">No saved plans.</p>';
             return;
         }
+        
+        // Filter by archive status
+        const filteredDocs = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
+            const isArchived = data.archived || false;
+            if (isArchived === showArchive) {
+                filteredDocs.push({ id: doc.id, data });
+            }
+        });
+
+        if (filteredDocs.length === 0) {
+            const emptyMsg = showArchive ? "No archived plans." : "No saved plans.";
+            historyList.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">${emptyMsg}</p>`;
+            return;
+        }
+
+        filteredDocs.forEach(({ id: docId, data }) => {
             const item = document.createElement('div');
-            item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors truncate border-b border-gray-50 flex items-center gap-2";
-            item.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
-            item.onclick = () => {
-                currentDocId = doc.id;
-                currentPlanData = data.plan;  // Store the plan data
+            item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg transition-colors truncate border-b border-gray-50 flex items-center gap-2 justify-between group relative";
+            
+            const titleEl = document.createElement('div');
+            titleEl.className = "flex items-center gap-2 flex-1 cursor-pointer";
+            titleEl.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
+            
+            // 3-dot menu button
+            const menuBtn = document.createElement('button');
+            menuBtn.className = "opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 relative";
+            menuBtn.innerHTML = '<i class="fa-solid fa-ellipsis-v"></i>';
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showContextMenu(e, docId, data);
+            });
+            
+            item.appendChild(titleEl);
+            item.appendChild(menuBtn);
+            
+            // Load plan when clicked on title
+            titleEl.addEventListener('click', () => {
+                currentDocId = docId;
+                currentPlanData = data.plan;
                 inputCard.classList.add('hidden');
                 headerSection.classList.add('hidden');
                 if (timetablesContainer) timetablesContainer.classList.add('hidden');
                 renderUI(data.plan, data.difficulty);
-                // If timetable exists, render it
                 if (data.plan.timetable && data.plan.timetable.length > 0) {
                     renderTimetable(data.plan.timetable);
                     document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
                 }
-            };
+            });
+            
             historyList.appendChild(item);
         });
     });
+}
+
+// ─── CONTEXT MENU FOR ARCHIVE/DELETE ─────────────────────────────────
+function showContextMenu(event, docId, data) {
+    // Close any existing context menu
+    const existingMenu = document.querySelector('.context-menu-popup');
+    if (existingMenu) existingMenu.remove();
+
+    const menu = document.createElement('div');
+    menu.className = "context-menu-popup absolute top-0 right-8 bg-white rounded-lg shadow-xl border border-gray-200 z-50 mt-0 min-w-[150px] animate-fade-in";
+    menu.style.animation = "fadeIn 0.2s ease-in-out";
+    
+    const isArchived = data.archived || false;
+    const archiveText = isArchived ? "Unarchive" : "Archive";
+    
+    menu.innerHTML = `
+        <button class="archive-action w-full px-4 py-2 text-left text-sm hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 border-b border-gray-100 first:rounded-t-lg transition">
+            <i class="fa-solid fa-${isArchived ? 'arrow-turn-up' : 'archive'} text-xs"></i>
+            ${archiveText}
+        </button>
+        <button class="delete-action w-full px-4 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-2 last:rounded-b-lg transition">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            Delete
+        </button>
+    `;
+
+    // Archive action
+    menu.querySelector('.archive-action').addEventListener('click', async () => {
+        await toggleArchive(docId, !isArchived);
+        menu.remove();
+    });
+
+    // Delete action
+    menu.querySelector('.delete-action').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to permanently delete this plan? This cannot be undone.')) {
+            await deletePlan(docId);
+            menu.remove();
+        }
+    });
+
+    event.target.closest('button').parentElement.appendChild(menu);
+}
+
+// ─── ARCHIVE PLAN ────────────────────────────────────────────────────
+async function toggleArchive(docId, shouldArchive) {
+    try {
+        const planRef = doc(db, "plans", docId);
+        await updateDoc(planRef, { archived: shouldArchive });
+        console.log(shouldArchive ? "Plan archived" : "Plan unarchived");
+    } catch (err) {
+        console.error("Archive error:", err);
+    }
+}
+
+// ─── DELETE PLAN ─────────────────────────────────────────────────────
+async function deletePlan(docId) {
+    try {
+        await deleteDoc(doc(db, "plans", docId));
+        console.log("Plan deleted permanently");
+        resetUI();
+    } catch (err) {
+        console.error("Delete error:", err);
+    }
 }
 
 // ─── GENERATION LOGIC ────────────────────────────────────────────────

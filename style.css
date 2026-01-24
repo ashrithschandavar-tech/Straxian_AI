@@ -228,3 +228,32 @@ aside#sidebar {
 .note-actions .delete-note-btn:hover {
     background: #fee2e2;
 }
+/* --- CONTEXT MENU STYLES --- */
+@keyframes contextMenuFadeIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.9) translateY(-5px);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu-popup {
+    animation: contextMenuFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.context-menu-popup button {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+.context-menu-popup button:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.context-menu-popup button:last-child {
+    border-radius: 0 0 0.5rem 0.5rem;
+}
