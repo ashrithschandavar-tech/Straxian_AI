@@ -476,27 +476,14 @@ function showHistoryContextMenu(event, docId, data) {
 
     // Archive action
     menu.querySelector('.archive-action').addEventListener('click', async () => {
-        try {
-            const planRef = doc(db, "plans", docId);
-            await updateDoc(planRef, {
-                archived: !isArchived
-            });
-        } catch (err) {
-            console.error("Archive error:", err);
-            alert('Error archiving plan: ' + err.message);
-        }
+        await toggleArchive(docId, !isArchived);
         menu.remove();
     });
 
     // Delete action
     menu.querySelector('.delete-action').addEventListener('click', async () => {
         if (confirm('Are you sure you want to permanently delete this plan? This cannot be undone.')) {
-            try {
-                await deleteDoc(doc(db, "plans", docId));
-            } catch (err) {
-                console.error("Delete error:", err);
-                alert('Error deleting plan: ' + err.message);
-            }
+            await deletePlan(docId);
             menu.remove();
         }
     });
@@ -520,5 +507,45 @@ function showHistoryContextMenu(event, docId, data) {
             menu.remove();
         }
         document.removeEventListener('click', closeHistoryContextMenu);
+    }
+}
+
+// ─── ARCHIVE PLAN ────────────────────────────────────────────────────
+async function toggleArchive(docId, shouldArchive) {
+    try {
+        const planRef = doc(db, "plans", docId);
+        await updateDoc(planRef, { archived: shouldArchive });
+        console.log(shouldArchive ? "Plan archived" : "Plan unarchived");
+        
+        // If unarchiving, switch back to active tab
+        if (!shouldArchive && showArchive) {
+            showArchive = false;
+            activeTab.classList.add('bg-indigo-600', 'text-white');
+            activeTab.classList.remove('bg-gray-300', 'text-gray-700');
+            archiveTab.classList.remove('bg-indigo-600', 'text-white');
+            archiveTab.classList.add('bg-gray-300', 'text-gray-700');
+            const user = auth.currentUser;
+            if (user) loadHistory(user.uid);
+        } else {
+            // Reload history for current filter
+            const user = auth.currentUser;
+            if (user) loadHistory(user.uid);
+        }
+    } catch (err) {
+        console.error("Archive error:", err);
+        alert('Error archiving plan: ' + err.message);
+    }
+}
+
+// ─── DELETE PLAN ─────────────────────────────────────────────────────
+async function deletePlan(docId) {
+    try {
+        await deleteDoc(doc(db, "plans", docId));
+        console.log("Plan deleted permanently");
+        const user = auth.currentUser;
+        if (user) loadHistory(user.uid);
+    } catch (err) {
+        console.error("Delete error:", err);
+        alert('Error deleting plan: ' + err.message);
     }
 }
