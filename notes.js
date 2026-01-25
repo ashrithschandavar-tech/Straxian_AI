@@ -169,23 +169,6 @@ archiveTab.addEventListener('click', () => {
     if (user) loadHistory(user.uid);
 });
 
-// ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────
-const closeSidebarBtn = document.getElementById('close-sidebar-btn');
-const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
-
-closeSidebarBtn.addEventListener('click', () => {
-    sidebar.classList.add('hidden');
-    if (toggleSidebarBtn) toggleSidebarBtn.classList.remove('hidden');
-});
-
-// Add toggle button if it doesn't exist
-if (toggleSidebarBtn) {
-    toggleSidebarBtn.addEventListener('click', () => {
-        sidebar.classList.remove('hidden');
-        toggleSidebarBtn.classList.add('hidden');
-    });
-}
-
 // ─── NAVIGATION ──────────────────────────────────────────────────────
 logoHome.addEventListener('click', () => {
     window.location.href = 'app.html';
