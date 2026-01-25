@@ -110,6 +110,8 @@ const newPlanBtn = document.getElementById('new-plan-btn');
 const myTimetablesBtn = document.getElementById('my-timetables-btn');
 const myNotesBtn = document.getElementById('my-notes-btn');
 const logoHome = document.getElementById('logoHome');
+const activeTab = document.getElementById('active-tab');
+const archiveTab = document.getElementById('archive-tab');
 
 const notesView = document.getElementById('notes-view');
 const noteEditorView = document.getElementById('note-editor-view');
@@ -123,6 +125,7 @@ const notesGrid = document.getElementById('notes-grid');
 
 let currentEditingNoteId = null;
 let autoSaveInterval = null;
+let showArchive = false;  // Track which tab is active
 
 // ─── AUTH & SIDEBAR SYNC ─────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
@@ -145,6 +148,27 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// ─── ARCHIVE/ACTIVE TAB SWITCHING ────────────────────────────────────
+activeTab.addEventListener('click', () => {
+    showArchive = false;
+    activeTab.classList.add('bg-indigo-600', 'text-white');
+    activeTab.classList.remove('bg-gray-300', 'text-gray-700');
+    archiveTab.classList.remove('bg-indigo-600', 'text-white');
+    archiveTab.classList.add('bg-gray-300', 'text-gray-700');
+    const user = auth.currentUser;
+    if (user) loadHistory(user.uid);
+});
+
+archiveTab.addEventListener('click', () => {
+    showArchive = true;
+    archiveTab.classList.add('bg-indigo-600', 'text-white');
+    archiveTab.classList.remove('bg-gray-300', 'text-gray-700');
+    activeTab.classList.remove('bg-indigo-600', 'text-white');
+    activeTab.classList.add('bg-gray-300', 'text-gray-700');
+    const user = auth.currentUser;
+    if (user) loadHistory(user.uid);
+});
+
 // ─── NAVIGATION ──────────────────────────────────────────────────────
 logoHome.addEventListener('click', () => {
     window.location.href = 'app.html';
@@ -164,13 +188,45 @@ myNotesBtn.addEventListener('click', () => {
 function loadHistory(uid) {
     const q = query(collection(db, "plans"), where("userId", "==", uid), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
+        // Check if there are any archived plans
+        let hasArchived = false;
+        snapshot.forEach((doc) => {
+            if (doc.data().archived) hasArchived = true;
+        });
+
+        // Show/hide both tabs together - either show both or hide both
+        if (hasArchived) {
+            archiveTab.style.display = 'flex';
+            activeTab.style.display = 'flex';
+        } else {
+            archiveTab.style.display = 'none';
+            activeTab.style.display = 'none';
+        }
+
         historyList.innerHTML = '';
         if (snapshot.empty) {
             historyList.innerHTML = '<p class="text-xs text-gray-400 p-4 text-center">No saved plans.</p>';
             return;
         }
+        
+        // Filter by archive status
+        const filteredDocs = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
+            const isArchived = data.archived || false;
+            if (isArchived === showArchive) {
+                filteredDocs.push({ id: doc.id, data });
+            }
+        });
+
+        if (filteredDocs.length === 0) {
+            const emptyMsg = showArchive ? "No archived plans." : "No saved plans.";
+            historyList.innerHTML = `<p class="text-xs text-gray-400 p-4 text-center">${emptyMsg}</p>`;
+            return;
+        }
+
+        filteredDocs.forEach((docData) => {
+            const { id: doc, data } = docData;
             const item = document.createElement('div');
             item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors border-b border-gray-50 flex items-center justify-between gap-2 group";
             
