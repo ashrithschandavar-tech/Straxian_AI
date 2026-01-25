@@ -201,6 +201,23 @@ archiveTab.addEventListener('click', () => {
     loadHistory(currentUserId);
 });
 
+// ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+
+closeSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.add('hidden');
+    if (toggleSidebarBtn) toggleSidebarBtn.classList.remove('hidden');
+});
+
+// Add toggle button if it doesn't exist
+if (toggleSidebarBtn) {
+    toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.remove('hidden');
+        toggleSidebarBtn.classList.add('hidden');
+    });
+}
+
 // ─── RESET APP ───────────────────────────────────────────────────────
 function resetUI() {
     document.getElementById('user-aim').value = '';
