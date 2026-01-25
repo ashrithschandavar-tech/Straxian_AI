@@ -226,7 +226,7 @@ function loadHistory(uid) {
         }
 
         filteredDocs.forEach((docData) => {
-            const { id: doc, data } = docData;
+            const { id: docId, data } = docData;
             const item = document.createElement('div');
             item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors border-b border-gray-50 flex items-center justify-between gap-2 group";
             
@@ -242,7 +242,7 @@ function loadHistory(uid) {
             menuBtn.innerHTML = '<i class="fa-solid fa-ellipsis-h"></i>';
             menuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                showHistoryContextMenu(e, doc.id, data);
+                showHistoryContextMenu(e, docId, data);
             });
             
             item.appendChild(titleEl);
