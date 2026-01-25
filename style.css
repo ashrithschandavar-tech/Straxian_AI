@@ -133,7 +133,7 @@ aside#sidebar {
 }
 /* Visual ghost effect when dragging */
 .sortable-ghost {
-    opacity: 0.4;
+    opacity: 0.35;
     background: #e0e7ff !important;
 }
 
