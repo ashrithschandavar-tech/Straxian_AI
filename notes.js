@@ -107,6 +107,7 @@ const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const myTimetablesBtn = document.getElementById('my-timetables-btn');
 const myNotesBtn = document.getElementById('my-notes-btn');
 const logoHome = document.getElementById('logoHome');
@@ -176,6 +177,10 @@ logoHome.addEventListener('click', () => {
 
 newPlanBtn.addEventListener('click', () => {
     window.location.href = 'app.html';
+});
+
+closeSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.add('hidden');
 });
 
 myNotesBtn.addEventListener('click', () => {

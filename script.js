@@ -141,6 +141,7 @@ const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const myTimetablesBtn = document.getElementById('my-timetables-btn');
 const activeTab = document.getElementById('active-tab');
 const archiveTab = document.getElementById('archive-tab');
@@ -199,6 +200,11 @@ archiveTab.addEventListener('click', () => {
     activeTab.classList.remove('bg-indigo-600', 'text-white');
     activeTab.classList.add('bg-gray-300', 'text-gray-700');
     loadHistory(currentUserId);
+});
+
+// ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────
+closeSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.add('hidden');
 });
 
 // ─── RESET APP ───────────────────────────────────────────────────────
