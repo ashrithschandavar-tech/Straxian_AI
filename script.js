@@ -204,9 +204,8 @@ archiveTab.addEventListener('click', () => {
 
 // ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────
 closeSidebarBtn.addEventListener('click', () => {
-    sidebar.classList.add('hidden');
+    sidebar.classList.add('collapsed');
 });
-
 // ─── RESET APP ───────────────────────────────────────────────────────
 function resetUI() {
     document.getElementById('user-aim').value = '';

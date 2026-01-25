@@ -180,7 +180,7 @@ newPlanBtn.addEventListener('click', () => {
 });
 
 closeSidebarBtn.addEventListener('click', () => {
-    sidebar.classList.add('hidden');
+    sidebar.classList.add('collapsed');
 });
 
 myNotesBtn.addEventListener('click', () => {
@@ -552,5 +552,28 @@ async function deletePlan(docId) {
     } catch (err) {
         console.error("Delete error:", err);
         alert('Error deleting plan: ' + err.message);
+    }
+}
+// Sidebar collapse / expand on hover
+if (sidebar) {
+    sidebar.addEventListener('mouseenter', () => {
+        sidebar.classList.remove('collapsed');
+    });
+
+    sidebar.addEventListener('mouseleave', () => {
+        sidebar.classList.add('collapsed');
+    });
+
+    // Settings tooltip
+    const settingsLink = document.getElementById('settings-link');
+    const tooltip = document.getElementById('settings-tooltip');
+
+    if (settingsLink && tooltip) {
+        settingsLink.addEventListener('mouseenter', () => {
+            tooltip.classList.add('show');
+        });
+        settingsLink.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+        });
     }
 }
