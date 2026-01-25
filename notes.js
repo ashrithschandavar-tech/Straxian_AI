@@ -172,11 +172,25 @@ function loadHistory(uid) {
         snapshot.forEach((doc) => {
             const data = doc.data();
             const item = document.createElement('div');
-            item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors truncate border-b border-gray-50 flex items-center gap-2";
-            item.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
-            item.onclick = () => {
+            item.className = "p-3 text-sm text-gray-600 hover:bg-indigo-50 rounded-lg cursor-pointer transition-colors border-b border-gray-50 flex items-center justify-between gap-2 group";
+            
+            const titleEl = document.createElement('div');
+            titleEl.className = "flex items-center gap-2 flex-1 cursor-pointer truncate";
+            titleEl.innerHTML = `<i class="fa-solid fa-chess-knight text-indigo-400 text-xs"></i> <span>${data.title}</span>`;
+            titleEl.onclick = () => {
                 window.location.href = 'app.html';
             };
+            
+            const menuBtn = document.createElement('button');
+            menuBtn.className = "opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-indigo-100 text-gray-500 hover:text-indigo-600 flex-shrink-0";
+            menuBtn.innerHTML = '<i class="fa-solid fa-ellipsis-h"></i>';
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showHistoryContextMenu(e, doc.id, data);
+            });
+            
+            item.appendChild(titleEl);
+            item.appendChild(menuBtn);
             historyList.appendChild(item);
         });
     });
@@ -379,4 +393,76 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// ─── CONTEXT MENU FOR HISTORY ITEMS ──────────────────────────────────
+function showHistoryContextMenu(event, docId, data) {
+    // Close any existing context menu
+    const existingMenu = document.querySelector('.context-menu-popup');
+    if (existingMenu) existingMenu.remove();
+
+    const menu = document.createElement('div');
+    menu.className = "context-menu-popup bg-white rounded-lg shadow-2xl border border-gray-200 z-50 min-w-[150px]";
+    
+    const isArchived = data.archived || false;
+    const archiveText = isArchived ? "Unarchive" : "Archive";
+    
+    menu.innerHTML = `
+        <button class="archive-action w-full px-4 py-2 text-left text-sm hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 border-b border-gray-100 first:rounded-t-lg transition">
+            <i class="fa-solid fa-${isArchived ? 'arrow-turn-up' : 'archive'} text-xs"></i>
+            ${archiveText}
+        </button>
+        <button class="delete-action w-full px-4 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600 flex items-center gap-2 last:rounded-b-lg transition">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            Delete
+        </button>
+    `;
+
+    // Archive action
+    menu.querySelector('.archive-action').addEventListener('click', async () => {
+        try {
+            const planRef = doc(db, "plans", docId);
+            await updateDoc(planRef, {
+                archived: !isArchived
+            });
+        } catch (err) {
+            console.error("Archive error:", err);
+            alert('Error archiving plan: ' + err.message);
+        }
+        menu.remove();
+    });
+
+    // Delete action
+    menu.querySelector('.delete-action').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to permanently delete this plan? This cannot be undone.')) {
+            try {
+                await deleteDoc(doc(db, "plans", docId));
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert('Error deleting plan: ' + err.message);
+            }
+            menu.remove();
+        }
+    });
+
+    // Position the menu near the clicked button
+    const buttonRect = event.target.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = (buttonRect.bottom + 5) + 'px';
+    menu.style.right = (window.innerWidth - buttonRect.right) + 'px';
+    menu.style.animation = 'contextMenuFadeIn 0.15s ease-in-out';
+
+    document.body.appendChild(menu);
+
+    // Close menu when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', closeHistoryContextMenu);
+    }, 0);
+
+    function closeHistoryContextMenu() {
+        if (menu && menu.parentNode) {
+            menu.remove();
+        }
+        document.removeEventListener('click', closeHistoryContextMenu);
+    }
 }
