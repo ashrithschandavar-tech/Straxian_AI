@@ -24,6 +24,27 @@
     </nav>
 
     <div class="flex flex-1 overflow-hidden">
+        <!-- Collapsed Sidebar -->
+        <aside id="sidebar-collapsed" class="hidden w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-4 transition-all duration-300 shadow-lg">
+            <button id="expand-sidebar-btn" class="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded transition" title="Expand Sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <button class="text-indigo-600 hover:bg-indigo-100 p-2 rounded transition" title="New Strategy">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button class="text-indigo-700 hover:bg-indigo-100 p-2 rounded transition" title="My Timetables">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </button>
+            <button class="text-amber-700 hover:bg-amber-100 p-2 rounded transition" title="My Notes">
+                <i class="fa-solid fa-sticky-note"></i>
+            </button>
+            <div class="flex-1"></div>
+            <button class="text-indigo-700 hover:bg-indigo-100 p-2 rounded transition" title="Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </aside>
+
+        <!-- Expanded Sidebar -->
         <aside id="sidebar" class="hidden w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg">
             <div class="p-4 border-b border-gray-200 bg-gradient-to-br from-indigo-50 to-blue-50">
                 <div class="flex justify-between items-center mb-3">

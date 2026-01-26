@@ -139,9 +139,11 @@ initializeDarkMode();
 
 const authBtn = document.getElementById('authBtn');
 const sidebar = document.getElementById('sidebar');
+const sidebarCollapsed = document.getElementById('sidebar-collapsed');
 const historyList = document.getElementById('history-list');
 const newPlanBtn = document.getElementById('new-plan-btn');
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const expandSidebarBtn = document.getElementById('expand-sidebar-btn');
 const myTimetablesBtn = document.getElementById('my-timetables-btn');
 const activeTab = document.getElementById('active-tab');
 const archiveTab = document.getElementById('archive-tab');
@@ -180,6 +182,7 @@ onAuthStateChanged(auth, (user) => {
         authBtn.textContent = "Login / Sign Up";
         authBtn.onclick = () => { window.location.href = "login.html"; };
         sidebar.classList.add('hidden');
+        sidebarCollapsed.classList.add('hidden');
     }
 });
 
@@ -205,6 +208,12 @@ archiveTab.addEventListener('click', () => {
 // ─── SIDEBAR TOGGLE ──────────────────────────────────────────────────
 closeSidebarBtn.addEventListener('click', () => {
     sidebar.classList.add('hidden');
+    sidebarCollapsed.classList.remove('hidden');
+});
+
+expandSidebarBtn.addEventListener('click', () => {
+    sidebarCollapsed.classList.add('hidden');
+    sidebar.classList.remove('hidden');
 });
 
 // ─── RESET APP ───────────────────────────────────────────────────────
