@@ -205,24 +205,16 @@ async function getAIResponse(userMessage) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                prompt: `You are Straxian AI's Goal Autopsy system. Respond naturally to: "${userMessage}"
-
-If this is execution data, analyze it. If it's a regular question, answer normally. Be conversational but direct.`
+                prompt: userMessage
             })
         });
 
-        if (response.ok) {
-            const data = await response.text();
-            if (data && data.trim()) {
-                return data;
-            }
-        }
-        
-        // Fallback for when API fails
-        return "I'm here to help analyze your goal execution. What specific challenges are you facing with your plan?";
+        if (!response.ok) throw new Error('Failed to get response');
+        const result = await response.json();
+        return result || "I'm here to help analyze your goal execution.";
     } catch (error) {
         console.error('API Error:', error);
-        return "I'm here to help analyze your goal execution. What specific challenges are you facing with your plan?";
+        return "I'm here to help analyze your goal execution.";
     }
 }
 
