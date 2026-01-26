@@ -509,6 +509,7 @@ function generatePDF(plansToDownload) {
     yPosition += 15;
     
     if (planData.plan) {
+      // Description
       if (planData.plan.description) {
         doc.text('Description:', 20, yPosition);
         yPosition += 5;
@@ -517,10 +518,13 @@ function generatePDF(plansToDownload) {
         yPosition += descLines.length * 5 + 5;
       }
       
+      // Phases
       if (planData.plan.phases && planData.plan.phases.length > 0) {
+        if (yPosition > 220) { doc.addPage(); yPosition = 20; }
         doc.text('Strategic Milestones:', 20, yPosition);
         yPosition += 5;
         planData.plan.phases.forEach((phase, i) => {
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
           doc.text(`${i + 1}. ${phase.name} (${phase.date})`, 25, yPosition);
           yPosition += 5;
           if (phase.desc) {
@@ -532,18 +536,98 @@ function generatePDF(plansToDownload) {
         yPosition += 5;
       }
       
+      // Habits
       if (planData.plan.habits && planData.plan.habits.length > 0) {
+        if (yPosition > 220) { doc.addPage(); yPosition = 20; }
         doc.text('Daily Habits:', 20, yPosition);
         yPosition += 5;
         planData.plan.habits.forEach(habit => {
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
           doc.text(`• ${habit}`, 25, yPosition);
           yPosition += 5;
         });
         yPosition += 5;
       }
+      
+      // Timetable
+      if (planData.plan.timetable && planData.plan.timetable.length > 0) {
+        if (yPosition > 200) { doc.addPage(); yPosition = 20; }
+        doc.text('Daily Timetable:', 20, yPosition);
+        yPosition += 5;
+        const sortedTimetable = [...planData.plan.timetable].sort((a, b) => {
+          const parseTime = (t) => {
+            const [time, modifier] = t.split(' ');
+            let [hours, minutes] = time.split(':');
+            if (hours === '12') hours = '00';
+            if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+            return parseInt(hours, 10) * 60 + parseInt(minutes || 0, 10);
+          };
+          return parseTime(a.time) - parseTime(b.time);
+        });
+        
+        sortedTimetable.forEach(slot => {
+          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
+          doc.text(`${slot.time} - ${slot.task}`, 25, yPosition);
+          yPosition += 5;
+        });
+        yPosition += 5;
+      }
+      
+      // Hurdles & Solutions
+      if (planData.plan.hurdles && planData.plan.hurdles.length > 0) {
+        if (yPosition > 200) { doc.addPage(); yPosition = 20; }
+        doc.text('Common Hurdles & Solutions:', 20, yPosition);
+        yPosition += 5;
+        planData.plan.hurdles.forEach(hurdle => {
+          if (yPosition > 250) { doc.addPage(); yPosition = 20; }
+          doc.text(`Problem: ${hurdle.issue}`, 25, yPosition);
+          yPosition += 5;
+          const solLines = doc.splitTextToSize(`Solution: ${hurdle.sol}`, 160);
+          doc.text(solLines, 25, yPosition);
+          yPosition += solLines.length * 4 + 5;
+        });
+        yPosition += 5;
+      }
+      
+      // Resources
+      if (planData.plan.resources && planData.plan.resources.length > 0) {
+        if (yPosition > 200) { doc.addPage(); yPosition = 20; }
+        doc.text('Curated Resources:', 20, yPosition);
+        yPosition += 5;
+        planData.plan.resources.forEach(resource => {
+          if (yPosition > 250) { doc.addPage(); yPosition = 20; }
+          doc.text(`${resource.type} - ${resource.name} (${resource.price})`, 25, yPosition);
+          yPosition += 5;
+          if (resource.desc) {
+            const resLines = doc.splitTextToSize(resource.desc, 160);
+            doc.text(resLines, 30, yPosition);
+            yPosition += resLines.length * 4 + 3;
+          }
+        });
+        yPosition += 5;
+      }
+      
+      // Warnings
+      if (planData.plan.warning) {
+        if (yPosition > 240) { doc.addPage(); yPosition = 20; }
+        doc.text('Timeline Warning:', 20, yPosition);
+        yPosition += 5;
+        const warnLines = doc.splitTextToSize(planData.plan.warning, 170);
+        doc.text(warnLines, 25, yPosition);
+        yPosition += warnLines.length * 4 + 5;
+      }
+      
+      if (planData.plan.categoryMismatch) {
+        if (yPosition > 240) { doc.addPage(); yPosition = 20; }
+        doc.text('Category Insight:', 20, yPosition);
+        yPosition += 5;
+        const catLines = doc.splitTextToSize(planData.plan.categoryMismatch, 170);
+        doc.text(catLines, 25, yPosition);
+        yPosition += catLines.length * 4 + 5;
+      }
     }
     
-    yPosition += 10;
+    yPosition += 15;
   });
   
   return doc;
@@ -582,12 +666,48 @@ function generateTextFile(plansToDownload) {
         content += '\n';
       }
       
+      if (planData.plan.timetable && planData.plan.timetable.length > 0) {
+        content += 'DAILY TIMETABLE:\n';
+        const sortedTimetable = [...planData.plan.timetable].sort((a, b) => {
+          const parseTime = (t) => {
+            const [time, modifier] = t.split(' ');
+            let [hours, minutes] = time.split(':');
+            if (hours === '12') hours = '00';
+            if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+            return parseInt(hours, 10) * 60 + parseInt(minutes || 0, 10);
+          };
+          return parseTime(a.time) - parseTime(b.time);
+        });
+        
+        sortedTimetable.forEach(slot => {
+          content += `${slot.time} - ${slot.task}\n`;
+        });
+        content += '\n';
+      }
+      
       if (planData.plan.hurdles && planData.plan.hurdles.length > 0) {
         content += 'COMMON HURDLES & SOLUTIONS:\n';
         planData.plan.hurdles.forEach(hurdle => {
           content += `Problem: ${hurdle.issue}\n`;
           content += `Solution: ${hurdle.sol}\n\n`;
         });
+      }
+      
+      if (planData.plan.resources && planData.plan.resources.length > 0) {
+        content += 'CURATED RESOURCES:\n';
+        planData.plan.resources.forEach(resource => {
+          content += `${resource.type} - ${resource.name} (${resource.price})\n`;
+          if (resource.desc) content += `   ${resource.desc}\n`;
+        });
+        content += '\n';
+      }
+      
+      if (planData.plan.warning) {
+        content += `TIMELINE WARNING:\n${planData.plan.warning}\n\n`;
+      }
+      
+      if (planData.plan.categoryMismatch) {
+        content += `CATEGORY INSIGHT:\n${planData.plan.categoryMismatch}\n\n`;
       }
     }
     
