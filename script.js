@@ -766,6 +766,10 @@ function renderTimetable(timetableData) {
     timetableList.innerHTML = ''; 
     const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
     sorted.forEach(item => createTimetableRow(item.time, item.task));
+    
+    // Show AI editor button when timetable exists
+    const showAiBtn = document.getElementById('show-ai-editor');
+    if (showAiBtn) showAiBtn.classList.remove('hidden');
 }
 
 function createTimetableRow(time = "09:00 AM", task = "New Task") {
@@ -884,6 +888,121 @@ document.getElementById('add-slot-btn').addEventListener('click', () => {
     resortRows();
     saveTimetableState();
 });
+
+// ─── AI TIMETABLE EDITOR ─────────────────────────────────────────────
+
+// Show/Hide AI Editor
+document.getElementById('show-ai-editor').addEventListener('click', () => {
+    const aiSection = document.getElementById('ai-editor-section');
+    const showBtn = document.getElementById('show-ai-editor');
+    aiSection.classList.remove('hidden');
+    showBtn.classList.add('hidden');
+    document.getElementById('ai-instruction').focus();
+});
+
+document.getElementById('toggle-ai-editor').addEventListener('click', () => {
+    const aiSection = document.getElementById('ai-editor-section');
+    const showBtn = document.getElementById('show-ai-editor');
+    aiSection.classList.add('hidden');
+    showBtn.classList.remove('hidden');
+    document.getElementById('ai-instruction').value = '';
+});
+
+// AI Edit Timetable
+document.getElementById('ai-edit-btn').addEventListener('click', async () => {
+    const instruction = document.getElementById('ai-instruction').value.trim();
+    const aiEditBtn = document.getElementById('ai-edit-btn');
+    
+    if (!instruction) {
+        alert('Please provide instructions for how to modify your timetable.');
+        return;
+    }
+    
+    if (!currentPlanData || !currentPlanData.timetable) {
+        alert('No timetable found to edit. Please generate a timetable first.');
+        return;
+    }
+    
+    // Show loading state
+    aiEditBtn.disabled = true;
+    aiEditBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> AI is thinking...`;
+    
+    try {
+        // Get current timetable
+        const currentTimetable = currentPlanData.timetable;
+        const goalTitle = currentPlanData.title || 'Goal';
+        
+        // Create AI prompt
+        const prompt = `You are an expert time management coach. The user has a daily timetable for their goal: "${goalTitle}".
+
+CURRENT TIMETABLE:
+${currentTimetable.map(slot => `${slot.time} - ${slot.task}`).join('\n')}
+
+USER REQUEST: "${instruction}"
+
+Please modify the timetable based on the user's request. Consider their feedback about what's working or not working. Return ONLY a JSON object with:
+{
+  "timetable": [{"time": "08:00 AM", "task": "Modified Activity"}, ...]
+}
+
+Make realistic adjustments that address their specific concerns while maintaining a productive schedule.`;
+        
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        
+        if (!response.ok) throw new Error('Failed to get AI suggestions');
+        const result = await response.json();
+        
+        if (result.timetable && result.timetable.length > 0) {
+            // Update timetable with AI suggestions
+            currentPlanData.timetable = result.timetable;
+            renderTimetable(result.timetable);
+            await saveTimetableState();
+            
+            // Hide AI editor and show success
+            document.getElementById('ai-editor-section').classList.add('hidden');
+            document.getElementById('show-ai-editor').classList.remove('hidden');
+            document.getElementById('ai-instruction').value = '';
+            
+            // Show success message
+            showTimetableMessage('AI has successfully updated your timetable based on your feedback!', 'success');
+        } else {
+            throw new Error('AI could not generate a valid timetable');
+        }
+    } catch (error) {
+        console.error('AI edit error:', error);
+        showTimetableMessage('Error: ' + error.message + '. Please try again.', 'error');
+    } finally {
+        aiEditBtn.disabled = false;
+        aiEditBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Apply AI Changes`;
+    }
+});
+
+function showTimetableMessage(message, type) {
+    // Create or update message element
+    let messageEl = document.getElementById('timetable-message');
+    if (!messageEl) {
+        messageEl = document.createElement('div');
+        messageEl.id = 'timetable-message';
+        messageEl.className = 'mt-4 p-3 rounded-lg text-sm font-medium text-center';
+        document.getElementById('timetable-section').appendChild(messageEl);
+    }
+    
+    messageEl.textContent = message;
+    messageEl.className = `mt-4 p-3 rounded-lg text-sm font-medium text-center ${
+        type === 'success' 
+            ? 'bg-green-100 text-green-800 border border-green-200' 
+            : 'bg-red-100 text-red-800 border border-red-200'
+    }`;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (messageEl) messageEl.remove();
+    }, 5000);
+}
 
 async function saveTimetableState() {
     if (!currentDocId || !currentPlanData) return;
