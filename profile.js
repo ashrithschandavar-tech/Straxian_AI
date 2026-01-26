@@ -551,9 +551,11 @@ function generatePDF(plansToDownload) {
       
       // Timetable
       if (planData.plan.timetable && planData.plan.timetable.length > 0) {
-        if (yPosition > 200) { doc.addPage(); yPosition = 20; }
+        if (yPosition > 180) { doc.addPage(); yPosition = 20; }
+        doc.setFontSize(12);
         doc.text('Daily Timetable:', 20, yPosition);
-        yPosition += 5;
+        yPosition += 10;
+        
         const sortedTimetable = [...planData.plan.timetable].sort((a, b) => {
           const parseTime = (t) => {
             const [time, modifier] = t.split(' ');
@@ -565,12 +567,45 @@ function generatePDF(plansToDownload) {
           return parseTime(a.time) - parseTime(b.time);
         });
         
-        sortedTimetable.forEach(slot => {
-          if (yPosition > 270) { doc.addPage(); yPosition = 20; }
-          doc.text(`${slot.time} - ${slot.task}`, 25, yPosition);
-          yPosition += 5;
-        });
+        // Table headers
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Time', 25, yPosition);
+        doc.text('Activity', 70, yPosition);
         yPosition += 5;
+        
+        // Table line under headers
+        doc.line(25, yPosition, 180, yPosition);
+        yPosition += 5;
+        
+        // Table content
+        doc.setFont(undefined, 'normal');
+        sortedTimetable.forEach(slot => {
+          if (yPosition > 270) { 
+            doc.addPage(); 
+            yPosition = 20;
+            // Repeat headers on new page
+            doc.setFont(undefined, 'bold');
+            doc.text('Time', 25, yPosition);
+            doc.text('Activity', 70, yPosition);
+            yPosition += 5;
+            doc.line(25, yPosition, 180, yPosition);
+            yPosition += 5;
+            doc.setFont(undefined, 'normal');
+          }
+          
+          doc.text(slot.time, 25, yPosition);
+          const taskLines = doc.splitTextToSize(slot.task, 110);
+          doc.text(taskLines, 70, yPosition);
+          yPosition += Math.max(5, taskLines.length * 4);
+          
+          // Light separator line
+          doc.setDrawColor(200, 200, 200);
+          doc.line(25, yPosition, 180, yPosition);
+          doc.setDrawColor(0, 0, 0);
+          yPosition += 2;
+        });
+        yPosition += 8;
       }
       
       // Hurdles & Solutions
