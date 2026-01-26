@@ -170,56 +170,36 @@ function removeTypingIndicator(typingId) {
 }
 
 async function getAIResponse(userMessage) {
-    const prompt = `You are Straxian AI's Goal Autopsy system. You are an execution auditor, not a therapist.
+    try {
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt: `You are Straxian AI's Goal Autopsy system. Analyze execution failures with data.
 
-User message: "${userMessage}"
+User: "${userMessage}"
 
-You must follow this exact process:
+Respond with:
+1. Ask for missing data (planned vs actual tasks, time spent, constraints)
+2. Classify failure: Overplanning, Underestimation, Inconsistency, Context overload, Distraction leakage, Priority inversion, Constraint violation
+3. Give evidence-based diagnosis
+4. One brutal conclusion sentence
+5. Exactly 3 corrections
 
-1. If missing data, ask for ONLY factual inputs in one compact message:
-   - Planned tasks (last 7 days)
-   - Tasks actually completed  
-   - Time allocated vs time spent
-   - User's stated constraints
+Be direct, no motivation.` 
+            })
+        });
 
-2. Classify failure into exactly ONE primary cause:
-   - Overplanning
-   - Underestimation
-   - Inconsistency
-   - Context overload
-   - Distraction leakage
-   - Priority inversion
-   - Constraint violation
+        if (!response.ok) {
+            return 'I need specific data about your failed tasks and execution patterns to perform the autopsy. What were your planned tasks vs what you actually completed?';
+        }
 
-3. Provide evidence-based diagnosis:
-   Primary cause: [cause]
-   Evidence:
-   - [specific data point]
-   - [specific data point]
-
-4. Give one brutally honest conclusion sentence.
-
-5. Propose exactly 3 corrections from:
-   - Reduce daily workload (by %)
-   - Remove or pause one goal
-   - Change time blocks
-   - Reorder task priority
-   - Increase buffer time
-   - Convert outcome goals → process goals
-
-NO motivational quotes. NO "you can do it". Be direct and factual.`;
-
-    const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-    });
-
-    if (!response.ok) throw new Error('Network error');
-    const result = await response.json();
-    
-    // Handle different possible response formats
-    return result.response || result.text || result.content || result.message || 'I need more specific information about your failed tasks and time allocation to perform the autopsy.';
+        const data = await response.text();
+        return data || 'Tell me about your execution failure with specific numbers and timeframes.';
+    } catch (error) {
+        console.error('API Error:', error);
+        return 'I need specific data about your failed tasks and execution patterns to perform the autopsy. What were your planned tasks vs what you actually completed?';
+    }
 }
 
 async function saveChatMessage(userMessage, aiResponse) {

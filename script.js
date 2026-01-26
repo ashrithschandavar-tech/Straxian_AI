@@ -1042,53 +1042,55 @@ async function saveTimetableState() {
 let executionHistory = new Map(); // Track daily execution rates
 
 function checkAutopsyTriggers() {
-    if (!currentDocId || !currentPlanData) return;
+    if (!currentDocId) return;
     
-    // Check execution rate for last 3 days
-    const today = new Date().toISOString().split('T')[0];
-    const executionRates = [];
+    // Check calendar-based execution for last 3 days
+    const today = new Date();
+    let consecutiveLowDays = 0;
     
-    for (let i = 0; i < 3; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        const rate = getExecutionRate(dateStr);
-        if (rate !== null) executionRates.push(rate);
+    for (let i = 1; i <= 3; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        const dateStr = checkDate.toISOString().split('T')[0];
+        
+        const status = progressData.get(dateStr);
+        if (status === 'missed' || status === 'not-started') {
+            consecutiveLowDays++;
+        } else {
+            break;
+        }
     }
     
-    // Trigger if execution < 60% for 3 consecutive days
-    if (executionRates.length >= 3 && executionRates.every(rate => rate < 0.6)) {
+    if (consecutiveLowDays >= 3) {
         triggerGoalAutopsy('low_execution');
     }
     
-    // Check for missed deadlines
-    if (currentPlanData.phases) {
-        const today = new Date();
+    if (currentPlanData && currentPlanData.phases) {
         currentPlanData.phases.forEach(phase => {
-            const phaseDate = new Date(phase.date);
-            if (phaseDate < today && !isPhaseCompleted(phase)) {
+            const phaseDate = parsePhaseDate(phase.date);
+            if (phaseDate && phaseDate < today) {
                 triggerGoalAutopsy('missed_deadline');
             }
         });
     }
 }
 
+function parsePhaseDate(dateStr) {
+    const parts = dateStr.split('/');
+    if (parts.length === 2) {
+        const month = parts[0];
+        const year = parts[1];
+        return new Date(`${month} 1, ${year}`);
+    }
+    return null;
+}
+
 function getExecutionRate(dateStr) {
-    if (!currentPlanData.timetable) return null;
-    
-    const totalTasks = currentPlanData.timetable.length;
-    if (totalTasks === 0) return null;
-    
-    const completedTasks = currentPlanData.timetable.filter(task => 
-        task.completed && task.completedDate === dateStr
-    ).length;
-    
-    return completedTasks / totalTasks;
+    return null; // Removed - now using calendar data
 }
 
 function isPhaseCompleted(phase) {
-    // Simple check - in a real implementation, this would check actual completion status
-    return false; // Placeholder
+    return false; // Removed - now using calendar data
 }
 
 function triggerGoalAutopsy(reason) {
@@ -1288,11 +1290,15 @@ function loadProgressData() {
     }
 }
 
+// Check triggers when calendar is updated
 function saveProgressData() {
     if (!currentDocId) return;
     
     const dataObj = Object.fromEntries(progressData);
     localStorage.setItem(`progress_${currentDocId}`, JSON.stringify(dataObj));
+    
+    // Check autopsy triggers after saving progress
+    checkAutopsyTriggers();
 }
 
 // Calendar navigation
