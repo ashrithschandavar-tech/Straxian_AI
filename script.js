@@ -320,6 +320,7 @@ function loadHistory(uid) {
                 if (data.plan.timetable && data.plan.timetable.length > 0) {
                     renderTimetable(data.plan.timetable);
                     document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
+                    showProgressCalendar();
                 }
             });
             
@@ -746,6 +747,8 @@ Make it realistic, detailed, and actionable with 10-15 time slots throughout the
             generateBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
             // Save the updated timetable to Firestore
             await saveTimetableState();
+            // Show calendar when timetable is generated
+            showProgressCalendar();
         } else {
             throw new Error('No timetable generated');
         }
@@ -913,4 +916,154 @@ async function saveTimetableState() {
 // Navigate to notes page
 myNotesBtn.addEventListener('click', () => {
     window.location.href = 'notes.html';
+});
+
+// ─── PROGRESS CALENDAR ───────────────────────────────────────────────
+
+let currentCalendarDate = new Date();
+let progressData = new Map(); // Store progress for each date
+
+function showProgressCalendar() {
+    const calendarSection = document.getElementById('calendar-section');
+    calendarSection.classList.remove('hidden');
+    renderCalendar();
+    loadProgressData();
+}
+
+function renderCalendar() {
+    const calendarGrid = document.getElementById('calendar-grid');
+    const currentMonthEl = document.getElementById('current-month');
+    
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    
+    currentMonthEl.textContent = new Date(year, month).toLocaleDateString('en-US', { 
+        month: 'long', 
+        year: 'numeric' 
+    });
+    
+    // Clear previous calendar
+    calendarGrid.innerHTML = '';
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'h-12';
+        calendarGrid.appendChild(emptyDay);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const today = new Date().toISOString().split('T')[0];
+        
+        dayEl.className = `h-12 flex items-center justify-center rounded-lg cursor-pointer transition-all hover:scale-105 ${
+            dateStr === today ? 'ring-2 ring-indigo-500' : ''
+        }`;
+        
+        dayEl.innerHTML = `
+            <div class="text-center">
+                <div class="text-sm font-medium">${day}</div>
+                <div class="w-2 h-2 rounded-full mx-auto mt-1 progress-dot" data-date="${dateStr}"></div>
+            </div>
+        `;
+        
+        // Set initial status
+        updateDayStatus(dayEl, dateStr);
+        
+        // Add click handler
+        dayEl.addEventListener('click', () => toggleDayStatus(dateStr, dayEl));
+        
+        calendarGrid.appendChild(dayEl);
+    }
+}
+
+function updateDayStatus(dayEl, dateStr) {
+    const dot = dayEl.querySelector('.progress-dot');
+    const status = progressData.get(dateStr) || 'not-started';
+    
+    // Remove existing status classes
+    dot.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-300');
+    dayEl.classList.remove('bg-green-50', 'bg-red-50', 'bg-gray-50');
+    
+    // Apply status
+    switch (status) {
+        case 'completed':
+            dot.classList.add('bg-green-500');
+            dayEl.classList.add('bg-green-50');
+            break;
+        case 'missed':
+            dot.classList.add('bg-red-500');
+            dayEl.classList.add('bg-red-50');
+            break;
+        default:
+            dot.classList.add('bg-gray-300');
+            dayEl.classList.add('bg-gray-50');
+    }
+}
+
+function toggleDayStatus(dateStr, dayEl) {
+    const currentStatus = progressData.get(dateStr) || 'not-started';
+    let newStatus;
+    
+    // Cycle through statuses: not-started -> completed -> missed -> not-started
+    switch (currentStatus) {
+        case 'not-started':
+            newStatus = 'completed';
+            break;
+        case 'completed':
+            newStatus = 'missed';
+            break;
+        case 'missed':
+            newStatus = 'not-started';
+            break;
+        default:
+            newStatus = 'completed';
+    }
+    
+    progressData.set(dateStr, newStatus);
+    updateDayStatus(dayEl, dateStr);
+    saveProgressData();
+}
+
+function loadProgressData() {
+    if (!currentDocId) return;
+    
+    const savedProgress = localStorage.getItem(`progress_${currentDocId}`);
+    if (savedProgress) {
+        const data = JSON.parse(savedProgress);
+        progressData = new Map(Object.entries(data));
+        
+        // Update calendar display
+        document.querySelectorAll('.progress-dot').forEach(dot => {
+            const dateStr = dot.getAttribute('data-date');
+            const dayEl = dot.closest('div').parentElement;
+            updateDayStatus(dayEl, dateStr);
+        });
+    }
+}
+
+function saveProgressData() {
+    if (!currentDocId) return;
+    
+    const dataObj = Object.fromEntries(progressData);
+    localStorage.setItem(`progress_${currentDocId}`, JSON.stringify(dataObj));
+}
+
+// Calendar navigation
+document.getElementById('prev-month').addEventListener('click', () => {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+    renderCalendar();
+    loadProgressData();
+});
+
+document.getElementById('next-month').addEventListener('click', () => {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+    renderCalendar();
+    loadProgressData();
 });
