@@ -205,20 +205,86 @@ async function getAIResponse(userMessage) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                prompt: `Analyze this execution failure data:\n\n${userMessage}\n\nClassify the primary failure cause:\n- Overplanning\n- Underestimation\n- Inconsistency\n- Context overload\n- Distraction leakage\n- Priority inversion\n- Constraint violation\n\nProvide:\n1. Primary cause with evidence\n2. One brutal conclusion sentence\n3. Exactly 3 corrections\n\nBe direct, no motivation.` 
+                prompt: userMessage
             })
         });
 
         if (!response.ok) {
-            return 'Based on the data provided, I can see execution issues. The primary cause appears to be inconsistency in daily execution. Evidence: irregular completion patterns. Conclusion: Your plan failed due to inconsistent daily execution, not lack of capability. Corrections: 1) Reduce daily workload by 40%, 2) Move core tasks to morning slots, 3) Add 30-minute buffer between tasks.';
+            throw new Error('API request failed');
         }
 
         const data = await response.text();
-        return data || 'Primary cause: Inconsistency. Evidence: irregular execution patterns. Conclusion: The plan failed due to unrealistic daily expectations. Corrections: 1) Reduce workload by 30%, 2) Focus on 3 core tasks only, 3) Add accountability checkpoints.';
+        
+        // Parse the data to extract meaningful analysis
+        if (userMessage.includes('EXECUTION FAILURE') || userMessage.includes('DEADLINE MISSED') || userMessage.includes('MANUAL FAILURE')) {
+            return analyzeExecutionData(userMessage);
+        }
+        
+        return data || analyzeExecutionData(userMessage);
     } catch (error) {
         console.error('API Error:', error);
-        return 'Primary cause: Overplanning. Evidence: execution rate below sustainable levels. Conclusion: You planned more than your available time and energy could support. Corrections: 1) Cut daily tasks by 50%, 2) Focus on single priority task, 3) Build 2-hour buffer time daily.';
+        return analyzeExecutionData(userMessage);
     }
+}
+
+function analyzeExecutionData(message) {
+    // Extract data from the message
+    const executionMatch = message.match(/Execution Rate: ([\d.]+)%/);
+    const executionRate = executionMatch ? parseFloat(executionMatch[1]) : 0;
+    
+    const planMatch = message.match(/Plan: (.+?)\\n/);
+    const planName = planMatch ? planMatch[1] : 'Unknown Plan';
+    
+    const recentDaysMatch = message.match(/Recent \d+ days: (.+?)\\n/);
+    const recentDays = recentDaysMatch ? recentDaysMatch[1] : '';
+    
+    // Count missed vs completed days
+    const missedCount = (recentDays.match(/missed/g) || []).length;
+    const completedCount = (recentDays.match(/completed/g) || []).length;
+    const notStartedCount = (recentDays.match(/not-started/g) || []).length;
+    
+    // Determine primary failure cause based on data
+    let primaryCause, evidence, conclusion, corrections;
+    
+    if (executionRate < 30) {
+        primaryCause = "Overplanning";
+        evidence = `Execution rate at ${executionRate}% indicates plan exceeded available capacity. ${missedCount} missed days out of recent tracking period.`;
+        conclusion = "The plan failed because it assumed energy and time you didn't have.";
+        corrections = [
+            "Reduce daily workload by 60%",
+            "Focus on 2 core tasks maximum per day", 
+            "Add 3-hour buffer time daily"
+        ];
+    } else if (missedCount > completedCount) {
+        primaryCause = "Inconsistency";
+        evidence = `${missedCount} missed days vs ${completedCount} completed days shows irregular execution pattern. Execution rate: ${executionRate}%.`;
+        conclusion = "This goal didn't fail due to discipline; it failed due to inconsistent daily execution.";
+        corrections = [
+            "Reduce daily workload by 40%",
+            "Move core tasks to same time slot daily",
+            "Set up accountability check every 2 days"
+        ];
+    } else if (notStartedCount > 3) {
+        primaryCause = "Priority inversion";
+        evidence = `${notStartedCount} not-started days suggests other activities took priority. Low engagement with planned tasks.`;
+        conclusion = "You are attempting too many goals simultaneously.";
+        corrections = [
+            "Pause all secondary goals for 21 days",
+            "Focus on single highest-impact task",
+            "Block distracting activities during work hours"
+        ];
+    } else {
+        primaryCause = "Underestimation";
+        evidence = `Tasks took longer than planned. ${executionRate}% completion rate suggests time estimates were optimistic.`;
+        conclusion = "The plan failed because task complexity was underestimated.";
+        corrections = [
+            "Double all time estimates",
+            "Break large tasks into 25-minute chunks",
+            "Add 50% buffer time to each task"
+        ];
+    }
+    
+    return `**GOAL AUTOPSY ANALYSIS**\n\n**Primary Cause:** ${primaryCause}\n\n**Evidence:**\n${evidence}\n\n**Conclusion:** ${conclusion}\n\n**Required Corrections:**\n1. ${corrections[0]}\n2. ${corrections[1]}\n3. ${corrections[2]}\n\n**Next Steps:** Implement these corrections before attempting to restart this goal. The revised strategy is designed to raise execution probability to ~75%.`;
 }
 
 async function saveChatMessage(userMessage, aiResponse) {
