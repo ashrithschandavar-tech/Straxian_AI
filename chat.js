@@ -205,86 +205,25 @@ async function getAIResponse(userMessage) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                prompt: userMessage
+                prompt: `You are Straxian AI's Goal Autopsy system. Respond naturally to: "${userMessage}"
+
+If this is execution data, analyze it. If it's a regular question, answer normally. Be conversational but direct.`
             })
         });
 
-        if (!response.ok) {
-            throw new Error('API request failed');
-        }
-
-        const data = await response.text();
-        
-        // Parse the data to extract meaningful analysis
-        if (userMessage.includes('EXECUTION FAILURE') || userMessage.includes('DEADLINE MISSED') || userMessage.includes('MANUAL FAILURE')) {
-            return analyzeExecutionData(userMessage);
+        if (response.ok) {
+            const data = await response.text();
+            if (data && data.trim()) {
+                return data;
+            }
         }
         
-        return data || analyzeExecutionData(userMessage);
+        // Fallback for when API fails
+        return "I'm here to help analyze your goal execution. What specific challenges are you facing with your plan?";
     } catch (error) {
         console.error('API Error:', error);
-        return analyzeExecutionData(userMessage);
+        return "I'm here to help analyze your goal execution. What specific challenges are you facing with your plan?";
     }
-}
-
-function analyzeExecutionData(message) {
-    // Extract data from the message
-    const executionMatch = message.match(/Execution Rate: ([\d.]+)%/);
-    const executionRate = executionMatch ? parseFloat(executionMatch[1]) : 0;
-    
-    const planMatch = message.match(/Plan: (.+?)\\n/);
-    const planName = planMatch ? planMatch[1] : 'Unknown Plan';
-    
-    const recentDaysMatch = message.match(/Recent \d+ days: (.+?)\\n/);
-    const recentDays = recentDaysMatch ? recentDaysMatch[1] : '';
-    
-    // Count missed vs completed days
-    const missedCount = (recentDays.match(/missed/g) || []).length;
-    const completedCount = (recentDays.match(/completed/g) || []).length;
-    const notStartedCount = (recentDays.match(/not-started/g) || []).length;
-    
-    // Determine primary failure cause based on data
-    let primaryCause, evidence, conclusion, corrections;
-    
-    if (executionRate < 30) {
-        primaryCause = "Overplanning";
-        evidence = `Execution rate at ${executionRate}% indicates plan exceeded available capacity. ${missedCount} missed days out of recent tracking period.`;
-        conclusion = "The plan failed because it assumed energy and time you didn't have.";
-        corrections = [
-            "Reduce daily workload by 60%",
-            "Focus on 2 core tasks maximum per day", 
-            "Add 3-hour buffer time daily"
-        ];
-    } else if (missedCount > completedCount) {
-        primaryCause = "Inconsistency";
-        evidence = `${missedCount} missed days vs ${completedCount} completed days shows irregular execution pattern. Execution rate: ${executionRate}%.`;
-        conclusion = "This goal didn't fail due to discipline; it failed due to inconsistent daily execution.";
-        corrections = [
-            "Reduce daily workload by 40%",
-            "Move core tasks to same time slot daily",
-            "Set up accountability check every 2 days"
-        ];
-    } else if (notStartedCount > 3) {
-        primaryCause = "Priority inversion";
-        evidence = `${notStartedCount} not-started days suggests other activities took priority. Low engagement with planned tasks.`;
-        conclusion = "You are attempting too many goals simultaneously.";
-        corrections = [
-            "Pause all secondary goals for 21 days",
-            "Focus on single highest-impact task",
-            "Block distracting activities during work hours"
-        ];
-    } else {
-        primaryCause = "Underestimation";
-        evidence = `Tasks took longer than planned. ${executionRate}% completion rate suggests time estimates were optimistic.`;
-        conclusion = "The plan failed because task complexity was underestimated.";
-        corrections = [
-            "Double all time estimates",
-            "Break large tasks into 25-minute chunks",
-            "Add 50% buffer time to each task"
-        ];
-    }
-    
-    return `**GOAL AUTOPSY ANALYSIS**\n\n**Primary Cause:** ${primaryCause}\n\n**Evidence:**\n${evidence}\n\n**Conclusion:** ${conclusion}\n\n**Required Corrections:**\n1. ${corrections[0]}\n2. ${corrections[1]}\n3. ${corrections[2]}\n\n**Next Steps:** Implement these corrections before attempting to restart this goal. The revised strategy is designed to raise execution probability to ~75%.`;
 }
 
 async function saveChatMessage(userMessage, aiResponse) {
