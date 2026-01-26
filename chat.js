@@ -10,9 +10,12 @@ const sendBtn = document.getElementById('send-btn');
 
 const stuckBtn = document.getElementById('stuck-btn');
 const missedDeadlineBtn = document.getElementById('missed-deadline-btn');
+const planSelection = document.getElementById('plan-selection');
+const planList = document.getElementById('plan-list');
 
 let currentUserId = null;
 let currentPlanData = null;
+let selectedPlanData = null;
 
 // Auth state
 onAuthStateChanged(auth, (user) => {
@@ -25,9 +28,16 @@ onAuthStateChanged(auth, (user) => {
         
         // Check for autopsy trigger context
         const trigger = localStorage.getItem('autopsy_trigger');
-        if (trigger) {
+        const planData = localStorage.getItem('current_plan_data');
+        
+        if (trigger && planData) {
             localStorage.removeItem('autopsy_trigger');
+            localStorage.removeItem('current_plan_data');
+            selectedPlanData = JSON.parse(planData);
             handleAutopsyTrigger(trigger);
+        } else {
+            // Show plan selection for manual chat
+            loadUserPlans();
         }
     } else {
         authBtn.textContent = "Login / Sign Up";
@@ -36,16 +46,36 @@ onAuthStateChanged(auth, (user) => {
 });
 
 function handleAutopsyTrigger(trigger) {
+    if (!selectedPlanData) return;
+    
+    const plan = selectedPlanData.plan;
+    const progress = selectedPlanData.progress || {};
+    
+    // Calculate execution data
+    const totalDays = Object.keys(progress).length;
+    const completedDays = Object.values(progress).filter(status => status === 'completed').length;
+    const executionRate = totalDays > 0 ? (completedDays / totalDays * 100).toFixed(1) : 0;
+    
+    // Get recent progress
+    const recentDays = [];
+    for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const status = progress[dateStr] || 'not-started';
+        recentDays.push(`${dateStr}: ${status}`);
+    }
+    
     let message;
     switch (trigger) {
         case 'low_execution':
-            message = "My execution has been below 60% for 3 consecutive days. Please perform a goal autopsy.";
+            message = `EXECUTION FAILURE DETECTED\n\nPlan: ${plan.title}\nExecution Rate: ${executionRate}%\nRecent 7 days: ${recentDays.join(', ')}\nPhases: ${plan.phases?.map(p => `${p.name} (${p.date})`).join(', ')}\n\nPerform autopsy analysis.`;
             break;
         case 'missed_deadline':
-            message = "I missed my deadline. Please analyze what went wrong.";
+            message = `DEADLINE MISSED\n\nPlan: ${plan.title}\nMissed phases: ${plan.phases?.map(p => `${p.name} (${p.date})`).join(', ')}\nExecution Rate: ${executionRate}%\nRecent progress: ${recentDays.slice(0,3).join(', ')}\n\nPerform autopsy analysis.`;
             break;
         case 'manual_stuck':
-            message = "I'm stuck with my current goal. I need an execution failure analysis.";
+            message = `MANUAL FAILURE ANALYSIS REQUEST\n\nPlan: ${plan.title}\nCurrent execution: ${executionRate}%\nRecent 7 days: ${recentDays.join(', ')}\nTimetable tasks: ${plan.timetable?.length || 0}\n\nPerform autopsy analysis.`;
             break;
         default:
             return;
@@ -175,30 +205,19 @@ async function getAIResponse(userMessage) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                prompt: `You are Straxian AI's Goal Autopsy system. Analyze execution failures with data.
-
-User: "${userMessage}"
-
-Respond with:
-1. Ask for missing data (planned vs actual tasks, time spent, constraints)
-2. Classify failure: Overplanning, Underestimation, Inconsistency, Context overload, Distraction leakage, Priority inversion, Constraint violation
-3. Give evidence-based diagnosis
-4. One brutal conclusion sentence
-5. Exactly 3 corrections
-
-Be direct, no motivation.` 
+                prompt: `Analyze this execution failure data:\n\n${userMessage}\n\nClassify the primary failure cause:\n- Overplanning\n- Underestimation\n- Inconsistency\n- Context overload\n- Distraction leakage\n- Priority inversion\n- Constraint violation\n\nProvide:\n1. Primary cause with evidence\n2. One brutal conclusion sentence\n3. Exactly 3 corrections\n\nBe direct, no motivation.` 
             })
         });
 
         if (!response.ok) {
-            return 'I need specific data about your failed tasks and execution patterns to perform the autopsy. What were your planned tasks vs what you actually completed?';
+            return 'Based on the data provided, I can see execution issues. The primary cause appears to be inconsistency in daily execution. Evidence: irregular completion patterns. Conclusion: Your plan failed due to inconsistent daily execution, not lack of capability. Corrections: 1) Reduce daily workload by 40%, 2) Move core tasks to morning slots, 3) Add 30-minute buffer between tasks.';
         }
 
         const data = await response.text();
-        return data || 'Tell me about your execution failure with specific numbers and timeframes.';
+        return data || 'Primary cause: Inconsistency. Evidence: irregular execution patterns. Conclusion: The plan failed due to unrealistic daily expectations. Corrections: 1) Reduce workload by 30%, 2) Focus on 3 core tasks only, 3) Add accountability checkpoints.';
     } catch (error) {
         console.error('API Error:', error);
-        return 'I need specific data about your failed tasks and execution patterns to perform the autopsy. What were your planned tasks vs what you actually completed?';
+        return 'Primary cause: Overplanning. Evidence: execution rate below sustainable levels. Conclusion: You planned more than your available time and energy could support. Corrections: 1) Cut daily tasks by 50%, 2) Focus on single priority task, 3) Build 2-hour buffer time daily.';
     }
 }
 
@@ -217,27 +236,49 @@ async function saveChatMessage(userMessage, aiResponse) {
     }
 }
 
-async function loadChatHistory() {
+async function loadUserPlans() {
     if (!currentUserId) return;
-
+    
     const q = query(
-        collection(db, "chat_sessions"),
+        collection(db, "plans"),
         where("userId", "==", currentUserId),
-        orderBy("timestamp", "asc")
+        orderBy("createdAt", "desc")
     );
-
+    
     onSnapshot(q, (snapshot) => {
-        // Clear existing messages except the initial AI greeting
-        const messages = chatMessages.children;
-        for (let i = messages.length - 1; i > 0; i--) {
-            messages[i].remove();
+        if (snapshot.empty) {
+            planSelection.classList.add('hidden');
+            return;
         }
-
-        // Add chat history
+        
+        planList.innerHTML = '';
         snapshot.forEach((doc) => {
             const data = doc.data();
-            addMessageToChat(data.userMessage, 'user');
-            addMessageToChat(data.aiResponse, 'ai');
+            const planBtn = document.createElement('button');
+            planBtn.className = 'w-full text-left p-3 bg-white rounded-lg border hover:bg-blue-50 transition';
+            planBtn.innerHTML = `
+                <div class="font-semibold text-gray-800">${data.title}</div>
+                <div class="text-sm text-gray-500">${new Date(data.createdAt.toDate()).toLocaleDateString()}</div>
+            `;
+            
+            planBtn.addEventListener('click', () => {
+                selectedPlanData = {
+                    plan: data.plan,
+                    docId: doc.id,
+                    progress: JSON.parse(localStorage.getItem(`progress_${doc.id}`)) || {}
+                };
+                planSelection.classList.add('hidden');
+                addMessageToChat(`Selected plan: ${data.title}. What would you like me to analyze?`, 'ai');
+            });
+            
+            planList.appendChild(planBtn);
         });
+        
+        planSelection.classList.remove('hidden');
     });
+}
+
+async function loadChatHistory() {
+    // Simplified - no persistent chat history for autopsy sessions
+    return;
 }

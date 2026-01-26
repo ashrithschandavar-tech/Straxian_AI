@@ -40,8 +40,14 @@
                         AI
                     </div>
                     <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4 max-w-md">
-                        <p class="text-gray-800">I'm Straxian's Goal Autopsy system. I analyze execution failures with hard data, not feelings. Tell me about your missed deadline or click "I'm Stuck" for immediate analysis.</p>
+                        <p class="text-gray-800">I'm Straxian's Goal Autopsy system. I analyze execution failures with hard data. Use the buttons below to trigger analysis or select a plan to analyze.</p>
                     </div>
+                </div>
+                
+                <!-- Plan Selection (shown when no trigger) -->
+                <div id="plan-selection" class="hidden bg-blue-50 rounded-xl p-4">
+                    <h4 class="font-semibold text-blue-800 mb-3">Select a plan to analyze:</h4>
+                    <div id="plan-list" class="space-y-2"></div>
                 </div>
             </div>
 

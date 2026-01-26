@@ -533,7 +533,24 @@ function renderUI(plan, difficulty) {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="md:col-span-2 space-y-4 relative ml-4 md:ml-8 border-l-2 border-dashed border-indigo-200 pl-8">
                 <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-map text-indigo-500"></i> Strategic Milestones</h3>
-                ${plan.phases.map((p, i) => `<div class="milestone-card shadow-sm animate-fade-in" style="animation-delay: ${i * 0.1}s"><div class="milestone-number">${i + 1}</div><div class="flex justify-between font-bold text-gray-800"><span>${p.name}</span><span class="text-indigo-500 text-sm">${p.date}</span></div><p class="text-gray-500 text-sm mt-2 leading-relaxed">${p.desc}</p></div>`).join('')}
+                ${plan.phases.map((p, i) => {
+                    const startDate = new Date();
+                    startDate.setDate(startDate.getDate() + (i * 14)); // 2 weeks apart
+                    const endDate = new Date(startDate);
+                    endDate.setDate(endDate.getDate() + 13);
+                    
+                    return `<div class="milestone-card shadow-sm animate-fade-in" style="animation-delay: ${i * 0.1}s">
+                        <div class="milestone-number">${i + 1}</div>
+                        <div class="flex justify-between font-bold text-gray-800">
+                            <span>${p.name}</span>
+                            <span class="text-indigo-500 text-sm">${p.date}</span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">
+                            ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2 leading-relaxed">${p.desc}</p>
+                    </div>`;
+                }).join('')}}
             </div>
             <div class="space-y-6">
                 <div class="habits-sidebar shadow-lg">
@@ -1152,9 +1169,28 @@ aiCoachBtn.addEventListener('click', () => {
 // Manual stuck trigger
 document.addEventListener('DOMContentLoaded', () => {
     const stuckTriggerBtn = document.getElementById('stuck-trigger-btn');
+    const missedDeadlineBtn = document.getElementById('missed-deadline-trigger-btn');
+    
     if (stuckTriggerBtn) {
         stuckTriggerBtn.addEventListener('click', () => {
             localStorage.setItem('autopsy_trigger', 'manual_stuck');
+            localStorage.setItem('current_plan_data', JSON.stringify({
+                plan: currentPlanData,
+                docId: currentDocId,
+                progress: Object.fromEntries(progressData)
+            }));
+            window.location.href = 'chat.html';
+        });
+    }
+    
+    if (missedDeadlineBtn) {
+        missedDeadlineBtn.addEventListener('click', () => {
+            localStorage.setItem('autopsy_trigger', 'missed_deadline');
+            localStorage.setItem('current_plan_data', JSON.stringify({
+                plan: currentPlanData,
+                docId: currentDocId,
+                progress: Object.fromEntries(progressData)
+            }));
             window.location.href = 'chat.html';
         });
     }
