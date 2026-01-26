@@ -765,10 +765,28 @@ Make it realistic, detailed, and actionable with 10-15 time slots throughout the
         if (!response.ok) throw new Error('Failed to generate timetable');
         const result = await response.json();
         
-        if (result.timetable && result.timetable.length > 0) {
+        // Handle both direct timetable response and nested response
+        let timetableData;
+        if (result.timetable) {
+            timetableData = result.timetable;
+        } else if (result && Array.isArray(result)) {
+            timetableData = result;
+        } else if (typeof result === 'string') {
+            // Try to parse JSON from string response
+            try {
+                const parsed = JSON.parse(result);
+                timetableData = parsed.timetable || parsed;
+            } catch {
+                throw new Error('Invalid response format');
+            }
+        } else {
+            timetableData = result;
+        }
+        
+        if (timetableData && timetableData.length > 0) {
             // Update current plan data with new timetable
-            currentPlanData.timetable = result.timetable;
-            renderTimetable(result.timetable);
+            currentPlanData.timetable = timetableData;
+            renderTimetable(timetableData);
             generateBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
             // Save the updated timetable to Firestore
             await saveTimetableState();
