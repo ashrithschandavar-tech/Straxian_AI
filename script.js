@@ -157,7 +157,6 @@ const logoHome = document.getElementById('logoHome');
 
 // Notes button
 const myNotesBtn = document.getElementById('my-notes-btn');
-const aiCoachBtn = document.getElementById('ai-coach-btn');
 
 let currentPlanData = null;
 let currentDocId = null;
@@ -224,9 +223,6 @@ document.getElementById('collapsed-timetables-btn').addEventListener('click', ()
 });
 document.getElementById('collapsed-notes-btn').addEventListener('click', () => {
     window.location.href = 'notes.html';
-});
-document.getElementById('collapsed-coach-btn').addEventListener('click', () => {
-    window.location.href = 'chat.html';
 });
 document.getElementById('collapsed-settings-btn').addEventListener('click', () => {
     window.location.href = 'profile.html';
@@ -533,24 +529,7 @@ function renderUI(plan, difficulty) {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="md:col-span-2 space-y-4 relative ml-4 md:ml-8 border-l-2 border-dashed border-indigo-200 pl-8">
                 <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-map text-indigo-500"></i> Strategic Milestones</h3>
-                ${plan.phases.map((p, i) => {
-                    const startDate = new Date();
-                    startDate.setDate(startDate.getDate() + (i * 14)); // 2 weeks apart
-                    const endDate = new Date(startDate);
-                    endDate.setDate(endDate.getDate() + 13);
-                    
-                    return `<div class="milestone-card shadow-sm animate-fade-in" style="animation-delay: ${i * 0.1}s">
-                        <div class="milestone-number">${i + 1}</div>
-                        <div class="flex justify-between font-bold text-gray-800">
-                            <span>${p.name}</span>
-                            <span class="text-indigo-500 text-sm">${p.date}</span>
-                        </div>
-                        <div class="text-xs text-gray-400 mt-1">
-                            ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
-                        </div>
-                        <p class="text-gray-500 text-sm mt-2 leading-relaxed">${p.desc}</p>
-                    </div>`;
-                }).join('')}}
+                ${plan.phases.map((p, i) => `<div class="milestone-card shadow-sm animate-fade-in" style="animation-delay: ${i * 0.1}s"><div class="milestone-number">${i + 1}</div><div class="flex justify-between font-bold text-gray-800"><span>${p.name}</span><span class="text-indigo-500 text-sm">${p.date}</span></div><p class="text-gray-500 text-sm mt-2 leading-relaxed">${p.desc}</p></div>`).join('')}
             </div>
             <div class="space-y-6">
                 <div class="habits-sidebar shadow-lg">
@@ -765,28 +744,10 @@ Make it realistic, detailed, and actionable with 10-15 time slots throughout the
         if (!response.ok) throw new Error('Failed to generate timetable');
         const result = await response.json();
         
-        // Handle both direct timetable response and nested response
-        let timetableData;
-        if (result.timetable) {
-            timetableData = result.timetable;
-        } else if (result && Array.isArray(result)) {
-            timetableData = result;
-        } else if (typeof result === 'string') {
-            // Try to parse JSON from string response
-            try {
-                const parsed = JSON.parse(result);
-                timetableData = parsed.timetable || parsed;
-            } catch {
-                throw new Error('Invalid response format');
-            }
-        } else {
-            timetableData = result;
-        }
-        
-        if (timetableData && timetableData.length > 0) {
+        if (result.timetable && result.timetable.length > 0) {
             // Update current plan data with new timetable
-            currentPlanData.timetable = timetableData;
-            renderTimetable(timetableData);
+            currentPlanData.timetable = result.timetable;
+            renderTimetable(result.timetable);
             generateBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> Re-Generate Timetable`;
             // Save the updated timetable to Firestore
             await saveTimetableState();
@@ -808,7 +769,7 @@ function renderTimetable(timetableData) {
     const timetableList = document.getElementById('timetable-list');
     timetableList.innerHTML = ''; 
     const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
-    sorted.forEach(item => createTimetableRow(item.time, item.task, item.completed || false));
+    sorted.forEach(item => createTimetableRow(item.time, item.task));
     
     // Show AI editor button only when timetable has data
     const showAiBtn = document.getElementById('show-ai-editor');
@@ -817,7 +778,7 @@ function renderTimetable(timetableData) {
     }
 }
 
-function createTimetableRow(time = "09:00 AM", task = "New Task", completed = false) {
+function createTimetableRow(time = "09:00 AM", task = "New Task") {
     const timetableList = document.getElementById('timetable-list');
     const row = document.createElement('div');
     row.className = "timetable-row animate-fade-in group flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-sm transition-all";
@@ -826,9 +787,9 @@ function createTimetableRow(time = "09:00 AM", task = "New Task", completed = fa
         <div class="drag-handle cursor-grab text-gray-300 hover:text-indigo-500 px-1">
             <i class="fa-solid fa-grip-lines"></i>
         </div>
-        <input type="checkbox" class="w-5 h-5 accent-indigo-600 cursor-pointer" ${completed ? 'checked' : ''}>
+        <input type="checkbox" class="w-5 h-5 accent-indigo-600 cursor-pointer">
         <input type="text" class="time-input w-24 bg-transparent border-none font-mono text-sm text-indigo-600 focus:ring-0" value="${time}">
-        <input type="text" class="task-input flex-1 bg-transparent border-none text-gray-700 focus:ring-0 ${completed ? 'task-done' : ''}" value="${task}">
+        <input type="text" class="task-input flex-1 bg-transparent border-none text-gray-700 focus:ring-0" value="${task}">
         <button class="remove-row-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
             <i class="fa-solid fa-trash-can"></i>
         </button>
@@ -919,7 +880,12 @@ function resortRows() {
     rowData.sort((a, b) => compareTimes(a.time, b.time));
     list.innerHTML = '';
     rowData.forEach(d => {
-        createTimetableRow(d.time, d.task, d.checked);
+        createTimetableRow(d.time, d.task);
+        if (d.checked) {
+            const last = list.lastElementChild;
+            last.querySelector('input[type="checkbox"]').checked = true;
+            last.querySelector('.task-input').classList.add('task-done');
+        }
     });
 }
 
@@ -1052,8 +1018,7 @@ async function saveTimetableState() {
 
     const updatedTimetable = rows.map(r => ({
         time: r.querySelector('.time-input').value,
-        task: r.querySelector('.task-input').value,
-        completed: r.querySelector('input[type="checkbox"]').checked
+        task: r.querySelector('.task-input').value
     }));
 
     // Update the local currentPlanData
@@ -1066,152 +1031,16 @@ async function saveTimetableState() {
             plan: currentPlanData
         });
         console.log("Timetable saved successfully.");
-        checkTriggersOnSave(); // Check for autopsy triggers
     } catch (err) {
         console.error("Save error:", err);
     }
 }
 
-// ─── GOAL AUTOPSY TRIGGERS ──────────────────────────────────────────
-
-let executionHistory = new Map(); // Track daily execution rates
-
-function checkAutopsyTriggers() {
-    if (!currentDocId) return;
-    
-    // Check calendar-based execution for last 3 days
-    const today = new Date();
-    let consecutiveLowDays = 0;
-    
-    for (let i = 1; i <= 3; i++) {
-        const checkDate = new Date(today);
-        checkDate.setDate(today.getDate() - i);
-        const dateStr = checkDate.toISOString().split('T')[0];
-        
-        const status = progressData.get(dateStr);
-        if (status === 'missed' || status === 'not-started') {
-            consecutiveLowDays++;
-        } else {
-            break;
-        }
-    }
-    
-    if (consecutiveLowDays >= 3) {
-        triggerGoalAutopsy('low_execution');
-    }
-    
-    if (currentPlanData && currentPlanData.phases) {
-        currentPlanData.phases.forEach(phase => {
-            const phaseDate = parsePhaseDate(phase.date);
-            if (phaseDate && phaseDate < today) {
-                triggerGoalAutopsy('missed_deadline');
-            }
-        });
-    }
-}
-
-function parsePhaseDate(dateStr) {
-    const parts = dateStr.split('/');
-    if (parts.length === 2) {
-        const month = parts[0];
-        const year = parts[1];
-        return new Date(`${month} 1, ${year}`);
-    }
-    return null;
-}
-
-function getExecutionRate(dateStr) {
-    return null; // Removed - now using calendar data
-}
-
-function isPhaseCompleted(phase) {
-    return false; // Removed - now using calendar data
-}
-
-function triggerGoalAutopsy(reason) {
-    // Store trigger reason for context
-    localStorage.setItem('autopsy_trigger', reason);
-    
-    // Show autopsy notification
-    showAutopsyNotification(reason);
-}
-
-function showAutopsyNotification(reason) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm';
-    
-    const message = reason === 'low_execution' 
-        ? 'Execution below 60% for 3 days. Goal Autopsy recommended.'
-        : 'Deadline missed. Goal Autopsy triggered.';
-    
-    notification.innerHTML = `
-        <div class="flex items-start gap-3">
-            <i class="fa-solid fa-exclamation-triangle text-lg mt-0.5"></i>
-            <div class="flex-1">
-                <p class="font-semibold text-sm">${message}</p>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="window.location.href='chat.html'" class="bg-white text-red-600 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100">
-                        Analyze Failure
-                    </button>
-                    <button onclick="this.closest('.fixed').remove()" class="text-red-200 hover:text-white text-xs">
-                        Dismiss
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-remove after 10 seconds
-    setTimeout(() => {
-        if (notification.parentNode) notification.remove();
-    }, 10000);
-}
-
-// Check triggers when timetable is updated
-function checkTriggersOnSave() {
-    setTimeout(checkAutopsyTriggers, 1000); // Delay to ensure data is saved
-}
+// ─── NOTES FUNCTIONALITY ─────────────────────────────────────────────
 
 // Navigate to notes page
 myNotesBtn.addEventListener('click', () => {
     window.location.href = 'notes.html';
-});
-
-// Navigate to AI coach chat
-aiCoachBtn.addEventListener('click', () => {
-    window.location.href = 'chat.html';
-});
-
-// Manual stuck trigger
-document.addEventListener('DOMContentLoaded', () => {
-    const stuckTriggerBtn = document.getElementById('stuck-trigger-btn');
-    const missedDeadlineBtn = document.getElementById('missed-deadline-trigger-btn');
-    
-    if (stuckTriggerBtn) {
-        stuckTriggerBtn.addEventListener('click', () => {
-            localStorage.setItem('autopsy_trigger', 'manual_stuck');
-            localStorage.setItem('current_plan_data', JSON.stringify({
-                plan: currentPlanData,
-                docId: currentDocId,
-                progress: Object.fromEntries(progressData)
-            }));
-            window.location.href = 'chat.html';
-        });
-    }
-    
-    if (missedDeadlineBtn) {
-        missedDeadlineBtn.addEventListener('click', () => {
-            localStorage.setItem('autopsy_trigger', 'missed_deadline');
-            localStorage.setItem('current_plan_data', JSON.stringify({
-                plan: currentPlanData,
-                docId: currentDocId,
-                progress: Object.fromEntries(progressData)
-            }));
-            window.location.href = 'chat.html';
-        });
-    }
 });
 
 // ─── PROGRESS CALENDAR ───────────────────────────────────────────────
@@ -1344,15 +1173,11 @@ function loadProgressData() {
     }
 }
 
-// Check triggers when calendar is updated
 function saveProgressData() {
     if (!currentDocId) return;
     
     const dataObj = Object.fromEntries(progressData);
     localStorage.setItem(`progress_${currentDocId}`, JSON.stringify(dataObj));
-    
-    // Check autopsy triggers after saving progress
-    checkAutopsyTriggers();
 }
 
 // Calendar navigation
