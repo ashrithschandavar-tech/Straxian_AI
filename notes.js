@@ -192,6 +192,22 @@ expandSidebarBtn.addEventListener('click', () => {
     sidebar.classList.remove('hidden');
 });
 
+// Collapsed sidebar button functionality
+document.getElementById('collapsed-new-plan-btn').addEventListener('click', () => {
+    window.location.href = 'app.html';
+});
+document.getElementById('collapsed-timetables-btn').addEventListener('click', () => {
+    window.location.href = 'app.html';
+});
+document.getElementById('collapsed-notes-btn').addEventListener('click', () => {
+    noteEditorView.classList.add('hidden');
+    notesView.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.getElementById('collapsed-settings-btn').addEventListener('click', () => {
+    window.location.href = 'profile.html';
+});
+
 myNotesBtn.addEventListener('click', () => {
     noteEditorView.classList.add('hidden');
     notesView.classList.remove('hidden');
