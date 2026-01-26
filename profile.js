@@ -590,81 +590,88 @@ function downloadFile(content, filename, type) {
 }
 
 // Download Selected Plans
-document.getElementById('downloadPlansBtn').addEventListener('click', async () => {
-  const selectedCheckboxes = document.querySelectorAll('.plan-checkbox:checked');
-  const format = document.getElementById('downloadFormat').value;
+document.addEventListener('DOMContentLoaded', () => {
+  const downloadPlansBtn = document.getElementById('downloadPlansBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
   
-  if (selectedCheckboxes.length === 0) {
-    showMessage('dataMessage', 'Please select at least one plan to download!', 'error');
-    return;
+  if (downloadPlansBtn) {
+    downloadPlansBtn.addEventListener('click', async () => {
+      const selectedCheckboxes = document.querySelectorAll('.plan-checkbox:checked');
+      const format = document.getElementById('downloadFormat').value;
+      
+      if (selectedCheckboxes.length === 0) {
+        showMessage('dataMessage', 'Please select at least one plan to download!', 'error');
+        return;
+      }
+      
+      showMessage('dataMessage', 'Generating download...', 'info');
+      
+      const plansToDownload = [];
+      selectedCheckboxes.forEach(checkbox => {
+        const planId = checkbox.getAttribute('data-plan');
+        const planData = allPlansData.get(planId);
+        if (planData) plansToDownload.push(planData);
+      });
+      
+      try {
+        const timestamp = new Date().getTime();
+        
+        if (format === 'pdf') {
+          const pdf = generatePDF(plansToDownload);
+          pdf.save(`straxian-plans-${timestamp}.pdf`);
+        } else if (format === 'txt') {
+          const content = generateTextFile(plansToDownload);
+          downloadFile(content, `straxian-plans-${timestamp}.txt`, 'text/plain');
+        } else if (format === 'json') {
+          const jsonData = JSON.stringify(plansToDownload, null, 2);
+          downloadFile(jsonData, `straxian-plans-${timestamp}.json`, 'application/json');
+        } else if (format === 'docx') {
+          const content = generateTextFile(plansToDownload);
+          downloadFile(content, `straxian-plans-${timestamp}.rtf`, 'application/rtf');
+        }
+        
+        showMessage('dataMessage', `${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
+      } catch (error) {
+        showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
+      }
+    });
   }
-  
-  showMessage('dataMessage', 'Generating download...', 'info');
-  
-  const plansToDownload = [];
-  selectedCheckboxes.forEach(checkbox => {
-    const planId = checkbox.getAttribute('data-plan');
-    const planData = allPlansData.get(planId);
-    if (planData) plansToDownload.push(planData);
-  });
-  
-  try {
-    const timestamp = new Date().getTime();
-    
-    if (format === 'pdf') {
-      const pdf = generatePDF(plansToDownload);
-      pdf.save(`straxian-plans-${timestamp}.pdf`);
-    } else if (format === 'txt') {
-      const content = generateTextFile(plansToDownload);
-      downloadFile(content, `straxian-plans-${timestamp}.txt`, 'text/plain');
-    } else if (format === 'json') {
-      const jsonData = JSON.stringify(plansToDownload, null, 2);
-      downloadFile(jsonData, `straxian-plans-${timestamp}.json`, 'application/json');
-    } else if (format === 'docx') {
-      // For now, download as rich text that can be opened in Word
-      const content = generateTextFile(plansToDownload);
-      downloadFile(content, `straxian-plans-${timestamp}.rtf`, 'application/rtf');
-    }
-    
-    showMessage('dataMessage', `${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
-  } catch (error) {
-    showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
-  }
-});
 
-// Download All Plans
-document.getElementById('downloadAllBtn').addEventListener('click', async () => {
-  const format = document.getElementById('downloadFormat').value;
-  
-  if (allPlansData.size === 0) {
-    showMessage('dataMessage', 'No plans available to download!', 'error');
-    return;
-  }
-  
-  showMessage('dataMessage', 'Generating download...', 'info');
-  
-  const plansToDownload = Array.from(allPlansData.values());
-  
-  try {
-    const timestamp = new Date().getTime();
-    
-    if (format === 'pdf') {
-      const pdf = generatePDF(plansToDownload);
-      pdf.save(`straxian-all-plans-${timestamp}.pdf`);
-    } else if (format === 'txt') {
-      const content = generateTextFile(plansToDownload);
-      downloadFile(content, `straxian-all-plans-${timestamp}.txt`, 'text/plain');
-    } else if (format === 'json') {
-      const jsonData = JSON.stringify(plansToDownload, null, 2);
-      downloadFile(jsonData, `straxian-all-plans-${timestamp}.json`, 'application/json');
-    } else if (format === 'docx') {
-      const content = generateTextFile(plansToDownload);
-      downloadFile(content, `straxian-all-plans-${timestamp}.rtf`, 'application/rtf');
-    }
-    
-    showMessage('dataMessage', `All ${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
-  } catch (error) {
-    showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
+  if (downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', async () => {
+      const format = document.getElementById('downloadFormat').value;
+      
+      if (allPlansData.size === 0) {
+        showMessage('dataMessage', 'No plans available to download!', 'error');
+        return;
+      }
+      
+      showMessage('dataMessage', 'Generating download...', 'info');
+      
+      const plansToDownload = Array.from(allPlansData.values());
+      
+      try {
+        const timestamp = new Date().getTime();
+        
+        if (format === 'pdf') {
+          const pdf = generatePDF(plansToDownload);
+          pdf.save(`straxian-all-plans-${timestamp}.pdf`);
+        } else if (format === 'txt') {
+          const content = generateTextFile(plansToDownload);
+          downloadFile(content, `straxian-all-plans-${timestamp}.txt`, 'text/plain');
+        } else if (format === 'json') {
+          const jsonData = JSON.stringify(plansToDownload, null, 2);
+          downloadFile(jsonData, `straxian-all-plans-${timestamp}.json`, 'application/json');
+        } else if (format === 'docx') {
+          const content = generateTextFile(plansToDownload);
+          downloadFile(content, `straxian-all-plans-${timestamp}.rtf`, 'application/rtf');
+        }
+        
+        showMessage('dataMessage', `All ${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
+      } catch (error) {
+        showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
+      }
+    });
   }
 });
 
