@@ -500,6 +500,10 @@ function renderUI(plan, difficulty) {
     // Don't auto-generate timetable - wait for user to click the button
     ttList.innerHTML = '<p class="text-center text-gray-400 py-4">Click "Generate Daily Schedule" to build your routine.</p>';
     document.getElementById('generate-timetable-btn').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Daily Schedule`;
+    
+    // Hide AI editor button initially
+    const showAiBtn = document.getElementById('show-ai-editor');
+    if (showAiBtn) showAiBtn.classList.add('hidden');
 
     let warningsHtml = '';
     if (plan.categoryMismatch) {
@@ -767,9 +771,11 @@ function renderTimetable(timetableData) {
     const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
     sorted.forEach(item => createTimetableRow(item.time, item.task));
     
-    // Show AI editor button when timetable exists
+    // Show AI editor button only when timetable has data
     const showAiBtn = document.getElementById('show-ai-editor');
-    if (showAiBtn) showAiBtn.classList.remove('hidden');
+    if (showAiBtn && timetableData && timetableData.length > 0) {
+        showAiBtn.classList.remove('hidden');
+    }
 }
 
 function createTimetableRow(time = "09:00 AM", task = "New Task") {
