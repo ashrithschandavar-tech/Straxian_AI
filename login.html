@@ -4,49 +4,117 @@
   <meta charset="UTF-8">
   <title>Login – Straxian AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <script type="module" src="login.js"></script>
+  <style>
+    .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .floating-shapes {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: float 15s infinite ease-in-out;
+    }
+    .shape:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+    .shape:nth-child(2) { width: 120px; height: 120px; top: 70%; left: 80%; animation-delay: 2s; }
+    .shape:nth-child(3) { width: 60px; height: 60px; top: 40%; left: 70%; animation-delay: 4s; }
+    .shape:nth-child(4) { width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 6s; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(120deg); }
+      66% { transform: translateY(30px) rotate(240deg); }
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 flex items-center justify-center">
+<body class="min-h-screen hero-gradient flex items-center justify-center relative overflow-hidden">
+  
+  <!-- Floating Background Shapes -->
+  <div class="floating-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
 
-  <div class="bg-white shadow-2xl rounded-3xl w-full max-w-md p-8">
+  <div class="glass-card shadow-2xl rounded-3xl w-full max-w-md p-8 relative z-10 transform hover:scale-105 transition-all duration-300" data-aos="zoom-in" data-aos-duration="800">
     
-    <div class="text-center mb-8">
-      <div class="bg-indigo-600 text-white w-12 h-12 flex items-center justify-center rounded-xl font-bold text-xl mx-auto mb-3">S</div>
-      <h2 class="text-2xl font-extrabold text-gray-800">Welcome to Straxian AI</h2>
-      <p class="text-gray-500 text-sm mt-1">Log in or create an account to continue</p>
+    <div class="text-center mb-8" data-aos="fade-up" data-aos-delay="200">
+      <div class="bg-gradient-to-br from-purple-600 to-pink-600 text-white w-16 h-16 flex items-center justify-center rounded-2xl font-bold text-2xl mx-auto mb-4 shadow-lg animate-pulse">
+        S
+      </div>
+      <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Welcome to Straxian AI</h2>
+      <p class="text-gray-600 text-sm">Log in or create an account to continue your journey</p>
     </div>
 
-    <div class="space-y-5">
-      <input id="email" type="email" placeholder="Email"
-        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+    <div class="space-y-5" data-aos="fade-up" data-aos-delay="400">
+      <div class="relative">
+        <i class="fa-solid fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input id="email" type="email" placeholder="Email"
+          class="input-modern pl-12 transition-all duration-300">
+      </div>
 
-      <input id="password" type="password" placeholder="Password"
-        class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+      <div class="relative">
+        <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <input id="password" type="password" placeholder="Password"
+          class="input-modern pl-12 transition-all duration-300">
+      </div>
 
       <button id="loginBtn"
-        class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
+        class="btn-primary w-full py-4 text-lg font-bold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-sign-in-alt"></i>
         Login
       </button>
 
       <button id="signupBtn"
-        class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition">
+        class="btn-secondary w-full py-4 text-lg font-bold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-user-plus"></i>
         Sign Up
       </button>
 
-      <div class="flex items-center my-4">
-        <div class="flex-1 h-px bg-gray-200"></div>
-        <span class="px-3 text-sm text-gray-400">OR</span>
-        <div class="flex-1 h-px bg-gray-200"></div>
+      <div class="flex items-center my-6">
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+        <span class="px-4 text-sm text-gray-500 font-semibold">OR</span>
+        <div class="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
       </div>
 
       <button id="googleBtn"
-        class="w-full py-3 border border-gray-200 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50 transition">
-        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5">
-        <span class="font-semibold text-gray-700">Continue with Google</span>
+        class="w-full py-4 border-2 border-gray-200 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 transform hover:scale-105 bg-white">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">
+        <span class="font-semibold text-gray-700 text-lg">Continue with Google</span>
       </button>
     </div>
 
+    <div class="mt-8 text-center" data-aos="fade-up" data-aos-delay="600">
+      <p class="text-sm text-gray-600">
+        By continuing, you agree to our 
+        <a href="#" class="text-purple-600 hover:text-purple-800 font-semibold">Terms</a> and 
+        <a href="#" class="text-purple-600 hover:text-purple-800 font-semibold">Privacy Policy</a>
+      </p>
+    </div>
+
   </div>
+
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
+  </script>
 
 </body>
 </html>
