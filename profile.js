@@ -4,7 +4,7 @@ import {
   signOut, 
   updatePassword 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const nameEl = document.getElementById('name');
 const emailEl = document.getElementById('email');
@@ -371,6 +371,8 @@ document.getElementById('savePreferencesBtn').addEventListener('click', () => {
 // Removed - not implemented yet
 
 // Load plans from Firebase and display them
+let allPlansData = new Map(); // Store full plan data
+
 function loadPlansForDownload() {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -393,15 +395,30 @@ function loadPlansForDownload() {
       selectContainer.classList.remove('hidden');
       noPlansMessage.classList.add('hidden');
       plansCheckboxes.innerHTML = '';
+      allPlansData.clear();
       
-      snapshot.forEach((doc, index) => {
-        const planData = doc.data();
+      snapshot.forEach((docSnap, index) => {
+        const planData = docSnap.data();
         const planTitle = planData.title || 'Plan ' + (index + 1);
+        const createdDate = planData.createdAt ? new Date(planData.createdAt.toDate()).toLocaleDateString() : 'Unknown';
+        
+        // Store full plan data
+        allPlansData.set(docSnap.id, {
+          id: docSnap.id,
+          title: planTitle,
+          plan: planData.plan,
+          difficulty: planData.difficulty,
+          createdAt: createdDate
+        });
+        
         const checkbox = document.createElement('label');
-        checkbox.className = 'flex items-center gap-2 cursor-pointer';
+        checkbox.className = 'flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 rounded';
         checkbox.innerHTML = `
-          <input type="checkbox" data-plan="${doc.id}" class="plan-checkbox w-4 h-4 text-orange-600 rounded">
-          <span class="text-sm text-gray-700">${planTitle}</span>
+          <input type="checkbox" data-plan="${docSnap.id}" class="plan-checkbox w-4 h-4 text-orange-600 rounded">
+          <div class="flex-1">
+            <span class="text-sm font-medium text-gray-700">${planTitle}</span>
+            <div class="text-xs text-gray-500">Created: ${createdDate}</div>
+          </div>
         `;
         plansCheckboxes.appendChild(checkbox);
       });
@@ -411,7 +428,7 @@ function loadPlansForDownload() {
       selectAllLabel.className = 'flex items-center gap-2 cursor-pointer font-semibold mt-3 pt-2 border-t border-gray-300';
       selectAllLabel.innerHTML = `
         <input id="selectAllPlans" type="checkbox" class="w-4 h-4 text-orange-600 rounded">
-        <span class="text-sm text-gray-700">Select All Plans</span>
+        <span class="text-sm text-gray-700">Select All Plans (${allPlansData.size})</span>
       `;
       plansCheckboxes.appendChild(selectAllLabel);
       
@@ -426,52 +443,226 @@ function loadPlansForDownload() {
 
 loadPlansForDownload();
 
-// Download Selected Plans as PDF
-document.getElementById('downloadPlansBtn').addEventListener('click', () => {
+// Download functionality
+function generatePDF(plansToDownload) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Header
+  doc.setFontSize(20);
+  doc.text('STRAXIAN AI - STRATEGY PLANS', 20, 20);
+  doc.setFontSize(12);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 30);
+  
+  let yPosition = 50;
+  
+  plansToDownload.forEach((planData, index) => {
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    // Plan title
+    doc.setFontSize(16);
+    doc.text(`${index + 1}. ${planData.title}`, 20, yPosition);
+    yPosition += 10;
+    
+    // Plan details
+    doc.setFontSize(10);
+    doc.text(`Created: ${planData.createdAt} | Difficulty: ${planData.difficulty || 'N/A'}`, 20, yPosition);
+    yPosition += 15;
+    
+    if (planData.plan) {
+      // Description
+      if (planData.plan.description) {
+        doc.text('Description:', 20, yPosition);
+        yPosition += 5;
+        const descLines = doc.splitTextToSize(planData.plan.description, 170);
+        doc.text(descLines, 25, yPosition);
+        yPosition += descLines.length * 5 + 5;
+      }
+      
+      // Phases
+      if (planData.plan.phases && planData.plan.phases.length > 0) {
+        doc.text('Strategic Milestones:', 20, yPosition);
+        yPosition += 5;
+        planData.plan.phases.forEach((phase, i) => {
+          doc.text(`${i + 1}. ${phase.name} (${phase.date})`, 25, yPosition);
+          yPosition += 5;
+          if (phase.desc) {
+            const phaseLines = doc.splitTextToSize(phase.desc, 160);
+            doc.text(phaseLines, 30, yPosition);
+            yPosition += phaseLines.length * 4 + 3;
+          }
+        });
+        yPosition += 5;
+      }
+      
+      // Habits
+      if (planData.plan.habits && planData.plan.habits.length > 0) {
+        doc.text('Daily Habits:', 20, yPosition);
+        yPosition += 5;
+        planData.plan.habits.forEach(habit => {
+          doc.text(`• ${habit}`, 25, yPosition);
+          yPosition += 5;
+        });
+        yPosition += 5;
+      }
+    }
+    
+    yPosition += 10;
+  });
+  
+  return doc;
+}
+
+function generateTextFile(plansToDownload) {
+  let content = 'STRAXIAN AI - YOUR STRATEGY PLANS\n';
+  content += '='.repeat(50) + '\n\n';
+  content += `Generated on: ${new Date().toLocaleString()}\n\n`;
+  
+  plansToDownload.forEach((planData, index) => {
+    content += `PLAN ${index + 1}: ${planData.title}\n`;
+    content += '-'.repeat(50) + '\n';
+    content += `Created: ${planData.createdAt}\n`;
+    content += `Difficulty: ${planData.difficulty || 'N/A'}\n\n`;
+    
+    if (planData.plan) {
+      if (planData.plan.description) {
+        content += `DESCRIPTION:\n${planData.plan.description}\n\n`;
+      }
+      
+      if (planData.plan.phases && planData.plan.phases.length > 0) {
+        content += 'STRATEGIC MILESTONES:\n';
+        planData.plan.phases.forEach((phase, i) => {
+          content += `${i + 1}. ${phase.name} (${phase.date})\n`;
+          if (phase.desc) content += `   ${phase.desc}\n`;
+        });
+        content += '\n';
+      }
+      
+      if (planData.plan.habits && planData.plan.habits.length > 0) {
+        content += 'DAILY HABITS:\n';
+        planData.plan.habits.forEach(habit => {
+          content += `• ${habit}\n`;
+        });
+        content += '\n';
+      }
+      
+      if (planData.plan.hurdles && planData.plan.hurdles.length > 0) {
+        content += 'COMMON HURDLES & SOLUTIONS:\n';
+        planData.plan.hurdles.forEach(hurdle => {
+          content += `Problem: ${hurdle.issue}\n`;
+          content += `Solution: ${hurdle.sol}\n\n`;
+        });
+      }
+    }
+    
+    content += '\n' + '='.repeat(50) + '\n\n';
+  });
+  
+  return content;
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// Download Selected Plans
+document.getElementById('downloadPlansBtn').addEventListener('click', async () => {
   const selectedCheckboxes = document.querySelectorAll('.plan-checkbox:checked');
+  const format = document.getElementById('downloadFormat').value;
   
   if (selectedCheckboxes.length === 0) {
-    const msg = document.getElementById('dataMessage');
-    msg.textContent = 'Please select at least one plan to download!';
-    msg.className = 'text-center text-sm mt-2 text-red-600 font-semibold';
+    showMessage('dataMessage', 'Please select at least one plan to download!', 'error');
     return;
   }
   
-  const msg = document.getElementById('dataMessage');
-  msg.textContent = 'Generating PDF...';
-  msg.className = 'text-center text-sm mt-2 text-blue-600 font-semibold';
+  showMessage('dataMessage', 'Generating download...', 'info');
   
-  setTimeout(() => {
-    let pdfContent = 'STRAXIAN AI - YOUR STRATEGY PLANS\n\n';
-    pdfContent += '='.repeat(50) + '\n\n';
+  const plansToDownload = [];
+  selectedCheckboxes.forEach(checkbox => {
+    const planId = checkbox.getAttribute('data-plan');
+    const planData = allPlansData.get(planId);
+    if (planData) plansToDownload.push(planData);
+  });
+  
+  try {
+    const timestamp = new Date().getTime();
     
-    let planCount = 0;
-    selectedCheckboxes.forEach((checkbox) => {
-      const planId = checkbox.getAttribute('data-plan');
-      const planTitle = checkbox.nextElementSibling.textContent;
-      planCount++;
-      
-      pdfContent += `PLAN ${planCount}: ${planTitle}\n`;
-      pdfContent += '-'.repeat(50) + '\n';
-      pdfContent += `Plan ID: ${planId}\n\n`;
-    });
+    if (format === 'pdf') {
+      const pdf = generatePDF(plansToDownload);
+      pdf.save(`straxian-plans-${timestamp}.pdf`);
+    } else if (format === 'txt') {
+      const content = generateTextFile(plansToDownload);
+      downloadFile(content, `straxian-plans-${timestamp}.txt`, 'text/plain');
+    } else if (format === 'json') {
+      const jsonData = JSON.stringify(plansToDownload, null, 2);
+      downloadFile(jsonData, `straxian-plans-${timestamp}.json`, 'application/json');
+    } else if (format === 'docx') {
+      // For now, download as rich text that can be opened in Word
+      const content = generateTextFile(plansToDownload);
+      downloadFile(content, `straxian-plans-${timestamp}.rtf`, 'application/rtf');
+    }
     
-    pdfContent += '\n' + '='.repeat(50) + '\n';
-    pdfContent += 'Generated on: ' + new Date().toLocaleString() + '\n';
-    
-    const blob = new Blob([pdfContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'straxian-plans-' + new Date().getTime() + '.txt';
-    link.click();
-    
-    msg.textContent = 'Plans downloaded successfully!';
-    msg.className = 'text-center text-sm mt-2 text-green-600 font-semibold';
-    
-    setTimeout(() => msg.textContent = '', 3000);
-  }, 1500);
+    showMessage('dataMessage', `${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
+  } catch (error) {
+    showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
+  }
 });
+
+// Download All Plans
+document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+  const format = document.getElementById('downloadFormat').value;
+  
+  if (allPlansData.size === 0) {
+    showMessage('dataMessage', 'No plans available to download!', 'error');
+    return;
+  }
+  
+  showMessage('dataMessage', 'Generating download...', 'info');
+  
+  const plansToDownload = Array.from(allPlansData.values());
+  
+  try {
+    const timestamp = new Date().getTime();
+    
+    if (format === 'pdf') {
+      const pdf = generatePDF(plansToDownload);
+      pdf.save(`straxian-all-plans-${timestamp}.pdf`);
+    } else if (format === 'txt') {
+      const content = generateTextFile(plansToDownload);
+      downloadFile(content, `straxian-all-plans-${timestamp}.txt`, 'text/plain');
+    } else if (format === 'json') {
+      const jsonData = JSON.stringify(plansToDownload, null, 2);
+      downloadFile(jsonData, `straxian-all-plans-${timestamp}.json`, 'application/json');
+    } else if (format === 'docx') {
+      const content = generateTextFile(plansToDownload);
+      downloadFile(content, `straxian-all-plans-${timestamp}.rtf`, 'application/rtf');
+    }
+    
+    showMessage('dataMessage', `All ${plansToDownload.length} plan(s) downloaded successfully!`, 'success');
+  } catch (error) {
+    showMessage('dataMessage', 'Error generating download: ' + error.message, 'error');
+  }
+});
+
+function showMessage(elementId, message, type) {
+  const msg = document.getElementById(elementId);
+  msg.textContent = message;
+  const colorClass = type === 'success' ? 'text-green-600' : type === 'error' ? 'text-red-600' : 'text-blue-600';
+  msg.className = `text-center text-sm mt-2 ${colorClass} font-semibold`;
+  
+  if (type === 'success') {
+    setTimeout(() => msg.textContent = '', 3000);
+  }
+}
 
 // Delete Account
 document.getElementById('deleteAccountBtn').addEventListener('click', () => {

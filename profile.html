@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Profile – Straxian AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script type="module" src="profile.js"></script>
   <style>
     #securityContent {
@@ -166,7 +168,17 @@
       </button>
 
       <div id="dataContent" class="space-y-4 mt-6 max-h-96 overflow-hidden transition-all duration-300 opacity-0" style="max-height: 0;">
-        <p class="text-sm text-gray-600">Download your strategy plans as PDF</p>
+        <p class="text-sm text-gray-600">Download your strategy plans in multiple formats</p>
+        
+        <div class="flex gap-2 mb-4">
+          <select id="downloadFormat" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white">
+            <option value="pdf">PDF Document</option>
+            <option value="docx">Word Document</option>
+            <option value="txt">Text File</option>
+            <option value="json">JSON Data</option>
+          </select>
+        </div>
+        
         <div id="plansSelectContainer" class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2 hidden">
           <p class="text-xs text-gray-500">Select plans to download:</p>
           <div id="plansCheckboxes"></div>
@@ -174,9 +186,14 @@
         <div id="noPlansMessage" class="text-center text-gray-500 py-4">
           <p>No plans available yet. Create a plan in the app to download it.</p>
         </div>
-        <button id="downloadPlansBtn" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
-          <i class="fa-solid fa-file-pdf mr-2"></i>Download Selected as PDF
-        </button>
+        <div class="flex gap-2">
+          <button id="downloadPlansBtn" class="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
+            <i class="fa-solid fa-download mr-2"></i>Download Selected
+          </button>
+          <button id="downloadAllBtn" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition transform hover:scale-[1.02]">
+            <i class="fa-solid fa-download mr-2"></i>Download All
+          </button>
+        </div>
         <p id="dataMessage" class="text-center text-sm mt-2"></p>
       </div>
     </div>
