@@ -157,6 +157,7 @@ const logoHome = document.getElementById('logoHome');
 
 // Notes button
 const myNotesBtn = document.getElementById('my-notes-btn');
+const aiCoachBtn = document.getElementById('ai-coach-btn');
 
 let currentPlanData = null;
 let currentDocId = null;
@@ -223,6 +224,9 @@ document.getElementById('collapsed-timetables-btn').addEventListener('click', ()
 });
 document.getElementById('collapsed-notes-btn').addEventListener('click', () => {
     window.location.href = 'notes.html';
+});
+document.getElementById('collapsed-coach-btn').addEventListener('click', () => {
+    window.location.href = 'chat.html';
 });
 document.getElementById('collapsed-settings-btn').addEventListener('click', () => {
     window.location.href = 'profile.html';
@@ -1037,6 +1041,11 @@ async function saveTimetableState() {
 // Navigate to notes page
 myNotesBtn.addEventListener('click', () => {
     window.location.href = 'notes.html';
+});
+
+// Navigate to AI coach chat
+aiCoachBtn.addEventListener('click', () => {
+    window.location.href = 'chat.html';
 });
 
 // ─── PROGRESS CALENDAR ───────────────────────────────────────────────
