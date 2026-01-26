@@ -8,6 +8,9 @@ const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
+const stuckBtn = document.getElementById('stuck-btn');
+const missedDeadlineBtn = document.getElementById('missed-deadline-btn');
+
 let currentUserId = null;
 let currentPlanData = null;
 
@@ -19,11 +22,41 @@ onAuthStateChanged(auth, (user) => {
         authBtn.onclick = () => { window.location.href = "profile.html"; };
         currentUserId = user.uid;
         loadChatHistory();
+        
+        // Check for autopsy trigger context
+        const trigger = localStorage.getItem('autopsy_trigger');
+        if (trigger) {
+            localStorage.removeItem('autopsy_trigger');
+            handleAutopsyTrigger(trigger);
+        }
     } else {
         authBtn.textContent = "Login / Sign Up";
         authBtn.onclick = () => { window.location.href = "login.html"; };
     }
 });
+
+function handleAutopsyTrigger(trigger) {
+    let message;
+    switch (trigger) {
+        case 'low_execution':
+            message = "My execution has been below 60% for 3 consecutive days. Please perform a goal autopsy.";
+            break;
+        case 'missed_deadline':
+            message = "I missed my deadline. Please analyze what went wrong.";
+            break;
+        case 'manual_stuck':
+            message = "I'm stuck with my current goal. I need an execution failure analysis.";
+            break;
+        default:
+            return;
+    }
+    
+    // Auto-trigger the autopsy
+    setTimeout(() => {
+        chatInput.value = message;
+        sendMessage();
+    }, 1000);
+}
 
 // Navigation
 backBtn.addEventListener('click', () => {
@@ -39,6 +72,20 @@ chatInput.addEventListener('keypress', (e) => {
 });
 
 sendBtn.addEventListener('click', sendMessage);
+
+// Trigger buttons
+stuckBtn.addEventListener('click', () => {
+    triggerAutopsy("I'm stuck with my current goal. I need an execution failure analysis.");
+});
+
+missedDeadlineBtn.addEventListener('click', () => {
+    triggerAutopsy("I missed my deadline. Please perform a goal autopsy.");
+});
+
+function triggerAutopsy(message) {
+    chatInput.value = message;
+    sendMessage();
+}
 
 async function sendMessage() {
     const message = chatInput.value.trim();
@@ -77,7 +124,7 @@ function addMessageToChat(message, sender) {
     
     const avatar = sender === 'user' 
         ? '<div class="bg-indigo-600 text-white w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold">U</div>'
-        : '<div class="bg-indigo-100 text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold">AI</div>';
+        : '<div class="bg-red-100 text-red-600 w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold">AI</div>';
     
     const bgColor = sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800';
     const roundedClass = sender === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm';
@@ -100,7 +147,7 @@ function addTypingIndicator() {
     typingDiv.className = 'flex items-start gap-3';
     
     typingDiv.innerHTML = `
-        <div class="bg-indigo-100 text-indigo-600 w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold">
+        <div class="bg-red-100 text-red-600 w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold">
             AI
         </div>
         <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4 max-w-md">
@@ -123,18 +170,44 @@ function removeTypingIndicator(typingId) {
 }
 
 async function getAIResponse(userMessage) {
-    const prompt = `You are an expert AI coach specializing in post-mortem analysis and strategy revision. A user is discussing their challenges, missed deadlines, or failed goals.
+    const prompt = `You are Straxian AI's Goal Autopsy system. You are an execution auditor, not a therapist.
 
 User message: "${userMessage}"
 
-Provide a helpful response that:
-1. If they mention specific failures or missed deadlines, analyze what went wrong
-2. Offer constructive feedback without being harsh
-3. Suggest concrete improvements or revised strategies
-4. Ask follow-up questions to better understand their situation
-5. Be empathetic but actionable
+You must follow this exact process:
 
-Keep responses conversational, supportive, and under 200 words.`;
+1. If missing data, ask for ONLY factual inputs in one compact message:
+   - Planned tasks (last 7 days)
+   - Tasks actually completed  
+   - Time allocated vs time spent
+   - User's stated constraints
+
+2. Classify failure into exactly ONE primary cause:
+   - Overplanning
+   - Underestimation
+   - Inconsistency
+   - Context overload
+   - Distraction leakage
+   - Priority inversion
+   - Constraint violation
+
+3. Provide evidence-based diagnosis:
+   Primary cause: [cause]
+   Evidence:
+   - [specific data point]
+   - [specific data point]
+
+4. Give one brutally honest conclusion sentence.
+
+5. Propose exactly 3 corrections from:
+   - Reduce daily workload (by %)
+   - Remove or pause one goal
+   - Change time blocks
+   - Reorder task priority
+   - Increase buffer time
+   - Convert outcome goals → process goals
+
+NO motivational quotes. NO "you can do it". Be direct and factual.`;
 
     const response = await fetch('/api/generate', {
         method: 'POST',
@@ -142,9 +215,11 @@ Keep responses conversational, supportive, and under 200 words.`;
         body: JSON.stringify({ prompt })
     });
 
-    if (!response.ok) throw new Error('Failed to get AI response');
+    if (!response.ok) throw new Error('Network error');
     const result = await response.json();
-    return result.response || result.text || 'I understand your situation. Could you tell me more about what specific challenges you faced?';
+    
+    // Handle different possible response formats
+    return result.response || result.text || result.content || result.message || 'I need more specific information about your failed tasks and time allocation to perform the autopsy.';
 }
 
 async function saveChatMessage(userMessage, aiResponse) {

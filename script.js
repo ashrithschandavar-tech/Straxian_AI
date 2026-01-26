@@ -1031,12 +1031,111 @@ async function saveTimetableState() {
             plan: currentPlanData
         });
         console.log("Timetable saved successfully.");
+        checkTriggersOnSave(); // Check for autopsy triggers
     } catch (err) {
         console.error("Save error:", err);
     }
 }
 
-// ─── NOTES FUNCTIONALITY ─────────────────────────────────────────────
+// ─── GOAL AUTOPSY TRIGGERS ──────────────────────────────────────────
+
+let executionHistory = new Map(); // Track daily execution rates
+
+function checkAutopsyTriggers() {
+    if (!currentDocId || !currentPlanData) return;
+    
+    // Check execution rate for last 3 days
+    const today = new Date().toISOString().split('T')[0];
+    const executionRates = [];
+    
+    for (let i = 0; i < 3; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const rate = getExecutionRate(dateStr);
+        if (rate !== null) executionRates.push(rate);
+    }
+    
+    // Trigger if execution < 60% for 3 consecutive days
+    if (executionRates.length >= 3 && executionRates.every(rate => rate < 0.6)) {
+        triggerGoalAutopsy('low_execution');
+    }
+    
+    // Check for missed deadlines
+    if (currentPlanData.phases) {
+        const today = new Date();
+        currentPlanData.phases.forEach(phase => {
+            const phaseDate = new Date(phase.date);
+            if (phaseDate < today && !isPhaseCompleted(phase)) {
+                triggerGoalAutopsy('missed_deadline');
+            }
+        });
+    }
+}
+
+function getExecutionRate(dateStr) {
+    if (!currentPlanData.timetable) return null;
+    
+    const totalTasks = currentPlanData.timetable.length;
+    if (totalTasks === 0) return null;
+    
+    const completedTasks = currentPlanData.timetable.filter(task => 
+        task.completed && task.completedDate === dateStr
+    ).length;
+    
+    return completedTasks / totalTasks;
+}
+
+function isPhaseCompleted(phase) {
+    // Simple check - in a real implementation, this would check actual completion status
+    return false; // Placeholder
+}
+
+function triggerGoalAutopsy(reason) {
+    // Store trigger reason for context
+    localStorage.setItem('autopsy_trigger', reason);
+    
+    // Show autopsy notification
+    showAutopsyNotification(reason);
+}
+
+function showAutopsyNotification(reason) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm';
+    
+    const message = reason === 'low_execution' 
+        ? 'Execution below 60% for 3 days. Goal Autopsy recommended.'
+        : 'Deadline missed. Goal Autopsy triggered.';
+    
+    notification.innerHTML = `
+        <div class="flex items-start gap-3">
+            <i class="fa-solid fa-exclamation-triangle text-lg mt-0.5"></i>
+            <div class="flex-1">
+                <p class="font-semibold text-sm">${message}</p>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="window.location.href='chat.html'" class="bg-white text-red-600 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100">
+                        Analyze Failure
+                    </button>
+                    <button onclick="this.closest('.fixed').remove()" class="text-red-200 hover:text-white text-xs">
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (notification.parentNode) notification.remove();
+    }, 10000);
+}
+
+// Check triggers when timetable is updated
+function checkTriggersOnSave() {
+    setTimeout(checkAutopsyTriggers, 1000); // Delay to ensure data is saved
+}
 
 // Navigate to notes page
 myNotesBtn.addEventListener('click', () => {
@@ -1046,6 +1145,17 @@ myNotesBtn.addEventListener('click', () => {
 // Navigate to AI coach chat
 aiCoachBtn.addEventListener('click', () => {
     window.location.href = 'chat.html';
+});
+
+// Manual stuck trigger
+document.addEventListener('DOMContentLoaded', () => {
+    const stuckTriggerBtn = document.getElementById('stuck-trigger-btn');
+    if (stuckTriggerBtn) {
+        stuckTriggerBtn.addEventListener('click', () => {
+            localStorage.setItem('autopsy_trigger', 'manual_stuck');
+            window.location.href = 'chat.html';
+        });
+    }
 });
 
 // ─── PROGRESS CALENDAR ───────────────────────────────────────────────
