@@ -377,21 +377,27 @@ function loadPlansForDownload() {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       document.getElementById('noPlansMessage').classList.remove('hidden');
+      document.getElementById('plansSelectContainer').classList.add('hidden');
       return;
     }
 
+    console.log('Loading plans for user:', user.uid); // Debug log
     const q = query(collection(db, "plans"), where("userId", "==", user.uid));
     onSnapshot(q, (snapshot) => {
+      console.log('Plans snapshot received, size:', snapshot.size); // Debug log
+      
       const plansCheckboxes = document.getElementById('plansCheckboxes');
       const selectContainer = document.getElementById('plansSelectContainer');
       const noPlansMessage = document.getElementById('noPlansMessage');
       
       if (snapshot.empty) {
+        console.log('No plans found'); // Debug log
         selectContainer.classList.add('hidden');
         noPlansMessage.classList.remove('hidden');
         return;
       }
       
+      console.log('Found', snapshot.size, 'plans'); // Debug log
       selectContainer.classList.remove('hidden');
       noPlansMessage.classList.add('hidden');
       plansCheckboxes.innerHTML = '';
@@ -399,6 +405,8 @@ function loadPlansForDownload() {
       
       snapshot.forEach((docSnap, index) => {
         const planData = docSnap.data();
+        console.log('Processing plan:', docSnap.id, planData.title); // Debug log
+        
         const planTitle = planData.title || 'Plan ' + (index + 1);
         const createdDate = planData.createdAt ? new Date(planData.createdAt.toDate()).toLocaleDateString() : 'Unknown';
         
@@ -437,6 +445,13 @@ function loadPlansForDownload() {
           checkbox.checked = e.target.checked;
         });
       });
+      
+      console.log('Plans loaded successfully, total:', allPlansData.size); // Debug log
+    }, (error) => {
+      console.error('Error loading plans:', error); // Debug log
+      const noPlansMessage = document.getElementById('noPlansMessage');
+      noPlansMessage.innerHTML = '<p>Error loading plans. Please refresh the page.</p>';
+      noPlansMessage.classList.remove('hidden');
     });
   });
 }
