@@ -674,90 +674,150 @@ aside#sidebar-collapsed {
 }
 
 .dark body {
-    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark nav {
-    background: rgba(15, 15, 35, 0.95);
-    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(15, 15, 35, 0.95) !important;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
 .dark .card-modern {
-    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark .input-modern {
-    background: rgba(30, 30, 63, 0.8);
-    border: 2px solid rgba(139, 92, 246, 0.3);
-    color: #e2e8f0;
+    background: rgba(30, 30, 63, 0.8) !important;
+    border: 2px solid rgba(139, 92, 246, 0.3) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark .input-modern:focus {
-    background: rgba(30, 30, 63, 1);
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+    background: rgba(30, 30, 63, 1) !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2) !important;
 }
 
-.dark .sidebar-btn {
-    color: #cbd5e1;
-}
-
-.dark .sidebar-btn:hover {
-    background: rgba(139, 92, 246, 0.2);
-    color: #e2e8f0;
-}
-
+/* Sidebar Dark Mode */
 .dark aside#sidebar {
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-    border-right: 1px solid rgba(139, 92, 246, 0.2);
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
+    border-right: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
 .dark aside#sidebar-collapsed {
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-    border-right: 1px solid rgba(139, 92, 246, 0.2);
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%) !important;
+    border-right: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
+/* Sidebar Header */
+.dark aside#sidebar > div:first-child {
+    background: linear-gradient(135deg, #2d1b69 0%, #3730a3 100%) !important;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Sidebar Footer */
+.dark aside#sidebar > div:last-child {
+    background: linear-gradient(135deg, #2d1b69 0%, #3730a3 100%) !important;
+    border-top: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* All sidebar buttons and text */
+.dark .sidebar-btn {
+    color: #cbd5e1 !important;
+    background: rgba(139, 92, 246, 0.1) !important;
+}
+
+.dark .sidebar-btn:hover {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #e2e8f0 !important;
+}
+
+/* Sidebar text elements */
+.dark aside h3,
+.dark aside span,
+.dark aside p,
+.dark aside button {
+    color: #e2e8f0 !important;
+}
+
+/* History list items */
+.dark #history-list > * {
+    color: #cbd5e1 !important;
+}
+
+.dark #history-list .text-gray-400 {
+    color: #9ca3af !important;
+}
+
+/* Milestone and other cards */
 .dark .milestone-card {
-    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
-    border: 2px solid rgba(139, 92, 246, 0.2);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%) !important;
+    border: 2px solid rgba(139, 92, 246, 0.2) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark .timetable-row {
-    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
-    border: 2px solid rgba(139, 92, 246, 0.2);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%) !important;
+    border: 2px solid rgba(139, 92, 246, 0.2) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark .timetable-row:hover {
-    background: linear-gradient(135deg, #2d2d5f 0%, #3d3d7f 100%);
-    border-color: rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #2d2d5f 0%, #3d3d7f 100%) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
 }
 
 .dark .note-card {
-    background: linear-gradient(135deg, #2d1b69 0%, #3730a3 50%, #4338ca 100%);
-    border: 2px solid rgba(139, 92, 246, 0.3);
-    color: #e2e8f0;
+    background: linear-gradient(135deg, #2d1b69 0%, #3730a3 50%, #4338ca 100%) !important;
+    border: 2px solid rgba(139, 92, 246, 0.3) !important;
+    color: #e2e8f0 !important;
 }
 
 .dark .note-card h3 {
-    color: #c4b5fd;
+    color: #c4b5fd !important;
 }
 
 .dark .note-card p {
-    color: #a5b4fc;
+    color: #a5b4fc !important;
 }
 
+/* All white backgrounds */
+.dark .bg-white {
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%) !important;
+    color: #e2e8f0 !important;
+}
+
+/* All gray backgrounds */
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+    background: rgba(30, 30, 63, 0.5) !important;
+    color: #e2e8f0 !important;
+}
+
+/* All text colors */
+.dark .text-gray-700,
+.dark .text-gray-800,
+.dark .text-gray-900,
+.dark .text-gray-600,
+.dark .text-gray-500 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-gray-400 {
+    color: #9ca3af !important;
+}
+
+/* Loading and other elements */
 .dark .loading-spinner {
-    border: 4px solid rgba(139, 92, 246, 0.2);
-    border-top: 4px solid #8b5cf6;
+    border: 4px solid rgba(139, 92, 246, 0.2) !important;
+    border-top: 4px solid #8b5cf6 !important;
 }
 
 .dark .pulse-dot {
-    background: #8b5cf6;
+    background: #8b5cf6 !important;
 }
 
 .dark .context-menu-popup {
@@ -766,6 +826,6 @@ aside#sidebar-collapsed {
 }
 
 .dark .context-menu-popup button:hover {
-    background: rgba(139, 92, 246, 0.2);
-    color: #e2e8f0;
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #e2e8f0 !important;
 }
