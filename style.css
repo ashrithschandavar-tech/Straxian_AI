@@ -810,6 +810,28 @@ aside#sidebar-collapsed {
     color: #9ca3af !important;
 }
 
+/* Main header text */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark p {
+    color: #e2e8f0 !important;
+}
+
+/* Header section specific */
+.dark #header-section h1 {
+    color: #e2e8f0 !important;
+}
+
+.dark #header-section p {
+    color: #cbd5e1 !important;
+}
+
+/* Main content area */
+.dark main {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
+}
+
 /* Loading and other elements */
 .dark .loading-spinner {
     border: 4px solid rgba(139, 92, 246, 0.2) !important;
