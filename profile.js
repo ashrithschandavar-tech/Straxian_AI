@@ -376,15 +376,11 @@ function loadPreferences() {
 function applyDarkMode() {
   localStorage.setItem('darkMode', 'true');
   document.documentElement.classList.add('dark');
-  document.body.classList.add('bg-gray-900', 'text-white');
-  document.body.classList.remove('bg-gray-50');
 }
 
 function removeDarkMode() {
   localStorage.setItem('darkMode', 'false');
   document.documentElement.classList.remove('dark');
-  document.body.classList.remove('bg-gray-900', 'text-white');
-  document.body.classList.add('bg-gray-50');
 }
 
 // Load plans from Firebase

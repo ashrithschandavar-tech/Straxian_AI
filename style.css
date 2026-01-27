@@ -667,3 +667,105 @@ aside#sidebar-collapsed {
         font-size: 0.9rem;
     }
 }
+
+/* --- DARK MODE --- */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    color: #e2e8f0;
+}
+
+.dark nav {
+    background: rgba(15, 15, 35, 0.95);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.dark .card-modern {
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #e2e8f0;
+}
+
+.dark .input-modern {
+    background: rgba(30, 30, 63, 0.8);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    color: #e2e8f0;
+}
+
+.dark .input-modern:focus {
+    background: rgba(30, 30, 63, 1);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+}
+
+.dark .sidebar-btn {
+    color: #cbd5e1;
+}
+
+.dark .sidebar-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #e2e8f0;
+}
+
+.dark aside#sidebar {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border-right: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.dark aside#sidebar-collapsed {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border-right: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.dark .milestone-card {
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    color: #e2e8f0;
+}
+
+.dark .timetable-row {
+    background: linear-gradient(135deg, #1e1e3f 0%, #2d2d5f 100%);
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    color: #e2e8f0;
+}
+
+.dark .timetable-row:hover {
+    background: linear-gradient(135deg, #2d2d5f 0%, #3d3d7f 100%);
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.dark .note-card {
+    background: linear-gradient(135deg, #2d1b69 0%, #3730a3 50%, #4338ca 100%);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    color: #e2e8f0;
+}
+
+.dark .note-card h3 {
+    color: #c4b5fd;
+}
+
+.dark .note-card p {
+    color: #a5b4fc;
+}
+
+.dark .loading-spinner {
+    border: 4px solid rgba(139, 92, 246, 0.2);
+    border-top: 4px solid #8b5cf6;
+}
+
+.dark .pulse-dot {
+    background: #8b5cf6;
+}
+
+.dark .context-menu-popup {
+    background: rgba(30, 30, 63, 0.95) !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+.dark .context-menu-popup button:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #e2e8f0;
+}
