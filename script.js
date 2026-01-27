@@ -646,7 +646,7 @@ function renderTimetable(timetableData) {
     const timetableList = document.getElementById('timetable-list');
     timetableList.innerHTML = ''; 
     const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
-    sorted.forEach(item => createTimetableRow(item.time, item.task));
+    sorted.forEach(item => createTimetableRow(item.time, item.task, item.completed || false));
     
     // Show AI editor button only when timetable has data
     const showAiBtn = document.getElementById('show-ai-editor');
@@ -655,7 +655,7 @@ function renderTimetable(timetableData) {
     }
 }
 
-function createTimetableRow(time = "09:00 AM", task = "New Task") {
+function createTimetableRow(time = "09:00 AM", task = "New Task", completed = false) {
     const timetableList = document.getElementById('timetable-list');
     const row = document.createElement('div');
     row.className = "timetable-row animate-fade-in group flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-sm transition-all";
@@ -664,9 +664,9 @@ function createTimetableRow(time = "09:00 AM", task = "New Task") {
         <div class="drag-handle cursor-grab text-gray-300 hover:text-indigo-500 px-1">
             <i class="fa-solid fa-grip-lines"></i>
         </div>
-        <input type="checkbox" class="w-5 h-5 accent-indigo-600 cursor-pointer">
+        <input type="checkbox" class="w-5 h-5 accent-indigo-600 cursor-pointer" ${completed ? 'checked' : ''}>
         <input type="text" class="time-input w-24 bg-transparent border-none font-mono text-sm text-indigo-600 focus:ring-0" value="${time}">
-        <input type="text" class="task-input flex-1 bg-transparent border-none text-gray-700 focus:ring-0" value="${task}">
+        <input type="text" class="task-input flex-1 bg-transparent border-none text-gray-700 focus:ring-0 ${completed ? 'task-done' : ''}" value="${task}">
         <button class="remove-row-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
             <i class="fa-solid fa-trash-can"></i>
         </button>
@@ -751,18 +751,13 @@ function resortRows() {
     const rowData = rows.map(r => ({
         time: r.querySelector('.time-input').value,
         task: r.querySelector('.task-input').value,
-        checked: r.querySelector('input[type="checkbox"]').checked
+        completed: r.querySelector('input[type="checkbox"]').checked
     }));
 
     rowData.sort((a, b) => compareTimes(a.time, b.time));
     list.innerHTML = '';
     rowData.forEach(d => {
-        createTimetableRow(d.time, d.task);
-        if (d.checked) {
-            const last = list.lastElementChild;
-            last.querySelector('input[type="checkbox"]').checked = true;
-            last.querySelector('.task-input').classList.add('task-done');
-        }
+        createTimetableRow(d.time, d.task, d.completed);
     });
 }
 
@@ -895,7 +890,8 @@ async function saveTimetableState() {
 
     const updatedTimetable = rows.map(r => ({
         time: r.querySelector('.time-input').value,
-        task: r.querySelector('.task-input').value
+        task: r.querySelector('.task-input').value,
+        completed: r.querySelector('input[type="checkbox"]').checked
     }));
 
     // Update the local currentPlanData
