@@ -330,7 +330,7 @@ generateBtn.addEventListener('click', async () => {
       "habits": ["Habit 1", "Habit 2"],
       "timetable": [{"time": "08:00 AM", "task": "Wake up and Review"}, {"time": "09:00 AM", "task": "Deep Work Session"}],
       "hurdles": [{"issue": "Challenge", "sol": "Solution"}],
-      "resources": [{"type": "BOOK", "price": "Free", "name": "Resource Name", "desc": "Description"}]
+      "resources": [{"type": "BOOK", "price": "Free", "name": "Resource Name", "desc": "Description", "link": "https://example.com"}]
     }`;
 
     try {
@@ -421,7 +421,7 @@ function renderUI(plan, difficulty) {
         </div>
         <div class="mt-12">
              <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-indigo-600"><i class="fa-solid fa-book-open"></i> Curated Resources</h3>
-             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">${plan.resources.map(r => `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:border-indigo-300 transition-all cursor-pointer group"><span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${r.type} • ${r.price}</span><h4 class="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">${r.name}</h4><p class="text-xs text-gray-500 mt-1 line-clamp-2">${r.desc}</p></div>`).join('')}</div>
+             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">${plan.resources.map(r => `<a href="${r.link || '#'}" target="_blank" class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:border-indigo-300 transition-all cursor-pointer group block"><span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${r.type} • ${r.price}</span><h4 class="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">${r.name}</h4><p class="text-xs text-gray-500 mt-1 line-clamp-2">${r.desc}</p>${r.link ? '<div class="mt-2 text-xs text-indigo-600 flex items-center gap-1"><i class="fa-solid fa-external-link"></i> Open Link</div>' : ''}</a>`).join('')}</div>
         </div>
     `;
     window.scrollTo({ top: 0, behavior: 'smooth' });
