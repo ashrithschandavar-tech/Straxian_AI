@@ -381,6 +381,9 @@ function renderUI(plan, difficulty) {
     loadingState.classList.add('hidden');
     resultContainer.classList.remove('hidden');
     
+    // Hide standard timetable when opening a chat
+    if (standardTimetableContainer) standardTimetableContainer.classList.add('hidden');
+    
     const ttSection = document.getElementById('timetable-section');
     const ttList = document.getElementById('timetable-list');
     ttSection.classList.remove('hidden');
