@@ -1099,18 +1099,22 @@ function toggleDayStatus(dateStr, dayEl) {
 function loadProgressData() {
     if (!currentDocId || !currentUserId) return;
     
-    // Make calendar data specific to both user and chat
-    const savedProgress = localStorage.getItem(`progress_${currentUserId}_${currentDocId}`);
+    // Make calendar data specific to this exact chat
+    const savedProgress = localStorage.getItem(`chat_progress_${currentUserId}_${currentDocId}`);
     if (savedProgress) {
         const data = JSON.parse(savedProgress);
         progressData = new Map(Object.entries(data));
         
         // Update calendar display
-        document.querySelectorAll('.progress-dot').forEach(dot => {
-            const dateStr = dot.getAttribute('data-date');
-            const dayEl = dot.closest('div').parentElement;
-            updateDayStatus(dayEl, dateStr);
-        });
+        setTimeout(() => {
+            document.querySelectorAll('.progress-dot').forEach(dot => {
+                const dateStr = dot.getAttribute('data-date');
+                if (dateStr) {
+                    const dayEl = dot.closest('div').parentElement;
+                    if (dayEl) updateDayStatus(dayEl, dateStr);
+                }
+            });
+        }, 100);
     }
     
     // Reset unsaved changes flag when loading
@@ -1122,8 +1126,8 @@ function saveProgressData() {
     if (!currentDocId || !currentUserId) return;
     
     const dataObj = Object.fromEntries(progressData);
-    // Make calendar data specific to both user and chat
-    localStorage.setItem(`progress_${currentUserId}_${currentDocId}`, JSON.stringify(dataObj));
+    // Make calendar data specific to this exact chat
+    localStorage.setItem(`chat_progress_${currentUserId}_${currentDocId}`, JSON.stringify(dataObj));
     
     // Hide save button and mark as saved
     calendarHasUnsavedChanges = false;
@@ -1429,32 +1433,51 @@ let standardProgressData = new Map();
 // ─── STANDARD CALENDAR FUNCTIONS ─────────────────────────────────────
 
 function setupStandardCalendar(uid) {
-    standardCalendarDate = new Date();
-    renderStandardCalendar();
-    loadStandardProgressData(uid);
-    
-    // Navigation events
-    document.getElementById('standard-prev-month').addEventListener('click', () => {
-        standardCalendarDate.setMonth(standardCalendarDate.getMonth() - 1);
+    // Wait for DOM to be ready
+    setTimeout(() => {
+        const prevBtn = document.getElementById('standard-prev-month');
+        const nextBtn = document.getElementById('standard-next-month');
+        const saveBtn = document.getElementById('save-standard-calendar-btn');
+        
+        if (!prevBtn || !nextBtn || !saveBtn) {
+            console.log('Standard calendar elements not ready, retrying...');
+            setupStandardCalendar(uid);
+            return;
+        }
+        
+        standardCalendarDate = new Date();
         renderStandardCalendar();
         loadStandardProgressData(uid);
-    });
-    
-    document.getElementById('standard-next-month').addEventListener('click', () => {
-        standardCalendarDate.setMonth(standardCalendarDate.getMonth() + 1);
-        renderStandardCalendar();
-        loadStandardProgressData(uid);
-    });
-    
-    // Save button
-    document.getElementById('save-standard-calendar-btn').addEventListener('click', () => {
-        saveStandardProgressData(uid);
-    });
+        
+        // Remove existing listeners to prevent duplicates
+        prevBtn.replaceWith(prevBtn.cloneNode(true));
+        nextBtn.replaceWith(nextBtn.cloneNode(true));
+        saveBtn.replaceWith(saveBtn.cloneNode(true));
+        
+        // Add fresh listeners
+        document.getElementById('standard-prev-month').addEventListener('click', () => {
+            standardCalendarDate.setMonth(standardCalendarDate.getMonth() - 1);
+            renderStandardCalendar();
+            loadStandardProgressData(uid);
+        });
+        
+        document.getElementById('standard-next-month').addEventListener('click', () => {
+            standardCalendarDate.setMonth(standardCalendarDate.getMonth() + 1);
+            renderStandardCalendar();
+            loadStandardProgressData(uid);
+        });
+        
+        document.getElementById('save-standard-calendar-btn').addEventListener('click', () => {
+            saveStandardProgressData(uid);
+        });
+    }, 200);
 }
 
 function renderStandardCalendar() {
     const calendarGrid = document.getElementById('standard-calendar-grid');
     const currentMonthEl = document.getElementById('standard-current-month');
+    
+    if (!calendarGrid || !currentMonthEl) return;
     
     const year = standardCalendarDate.getFullYear();
     const month = standardCalendarDate.getMonth();
@@ -1549,16 +1572,20 @@ function toggleStandardDayStatus(dateStr, dayEl) {
 }
 
 function loadStandardProgressData(uid) {
-    const savedProgress = localStorage.getItem(`standard_progress_${uid}`);
+    const savedProgress = localStorage.getItem(`standard_calendar_${uid}`);
     if (savedProgress) {
         const data = JSON.parse(savedProgress);
         standardProgressData = new Map(Object.entries(data));
         
-        document.querySelectorAll('.standard-progress-dot').forEach(dot => {
-            const dateStr = dot.getAttribute('data-date');
-            const dayEl = dot.closest('div').parentElement;
-            updateStandardDayStatus(dayEl, dateStr);
-        });
+        setTimeout(() => {
+            document.querySelectorAll('.standard-progress-dot').forEach(dot => {
+                const dateStr = dot.getAttribute('data-date');
+                if (dateStr) {
+                    const dayEl = dot.closest('div').parentElement;
+                    if (dayEl) updateStandardDayStatus(dayEl, dateStr);
+                }
+            });
+        }, 50);
     }
     
     const saveBtn = document.getElementById('save-standard-calendar-btn');
@@ -1567,7 +1594,7 @@ function loadStandardProgressData(uid) {
 
 function saveStandardProgressData(uid) {
     const dataObj = Object.fromEntries(standardProgressData);
-    localStorage.setItem(`standard_progress_${uid}`, JSON.stringify(dataObj));
+    localStorage.setItem(`standard_calendar_${uid}`, JSON.stringify(dataObj));
     
     const saveBtn = document.getElementById('save-standard-calendar-btn');
     if (saveBtn) saveBtn.classList.add('hidden');
