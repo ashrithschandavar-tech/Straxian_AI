@@ -38,8 +38,10 @@ const myNotesBtn = document.getElementById('my-notes-btn');
 let currentPlanData = null;
 let currentDocId = null;
 let timetablesContainer = null;
+let standardTimetableContainer = null;
 let currentUserId = null;
 let showArchive = false;  // Track which tab is active
+let calendarHasUnsavedChanges = false;  // Track calendar changes
 
 // ─── AUTH & SIDEBAR SYNC ─────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
@@ -54,6 +56,12 @@ onAuthStateChanged(auth, (user) => {
 
         myTimetablesBtn.addEventListener('click', () => {
             showTimetablesView(user.uid);
+        });
+        
+        // Standard Timetable button
+        const standardTimetableBtn = document.getElementById('standard-timetable-btn');
+        standardTimetableBtn.addEventListener('click', () => {
+            showStandardTimetableView(user.uid);
         });
     } else {
         authBtn.textContent = "Login / Sign Up";
@@ -113,12 +121,16 @@ function resetUI() {
     document.getElementById('difficulty').selectedIndex = 0;
     resultContainer.classList.add('hidden');
     document.getElementById('timetable-section').classList.add('hidden');
+    document.getElementById('calendar-section').classList.add('hidden');
     loadingState.classList.add('hidden');
     inputCard.classList.remove('hidden');
     headerSection.classList.remove('hidden');
     if (timetablesContainer) timetablesContainer.classList.add('hidden');
+    if (standardTimetableContainer) standardTimetableContainer.classList.add('hidden');
     currentDocId = null;
     currentPlanData = null;
+    calendarHasUnsavedChanges = false;
+    hideCalendarSaveButton();
     window.scrollTo(0, 0);
 }
 
@@ -1026,7 +1038,10 @@ function toggleDayStatus(dateStr, dayEl) {
     
     progressData.set(dateStr, newStatus);
     updateDayStatus(dayEl, dateStr);
-    saveProgressData();
+    
+    // Mark calendar as having unsaved changes
+    calendarHasUnsavedChanges = true;
+    showCalendarSaveButton();
 }
 
 function loadProgressData() {
@@ -1044,6 +1059,10 @@ function loadProgressData() {
             updateDayStatus(dayEl, dateStr);
         });
     }
+    
+    // Reset unsaved changes flag when loading
+    calendarHasUnsavedChanges = false;
+    hideCalendarSaveButton();
 }
 
 function saveProgressData() {
@@ -1051,6 +1070,48 @@ function saveProgressData() {
     
     const dataObj = Object.fromEntries(progressData);
     localStorage.setItem(`progress_${currentDocId}`, JSON.stringify(dataObj));
+    
+    // Hide save button and mark as saved
+    calendarHasUnsavedChanges = false;
+    hideCalendarSaveButton();
+    showCalendarMessage('Calendar progress saved successfully!', 'success');
+}
+
+function showCalendarSaveButton() {
+    const saveBtn = document.getElementById('save-calendar-btn');
+    if (saveBtn) {
+        saveBtn.classList.remove('hidden');
+    }
+}
+
+function hideCalendarSaveButton() {
+    const saveBtn = document.getElementById('save-calendar-btn');
+    if (saveBtn) {
+        saveBtn.classList.add('hidden');
+    }
+}
+
+function showCalendarMessage(message, type) {
+    // Create or update message element
+    let messageEl = document.getElementById('calendar-message');
+    if (!messageEl) {
+        messageEl = document.createElement('div');
+        messageEl.id = 'calendar-message';
+        messageEl.className = 'mt-4 p-3 rounded-lg text-sm font-medium text-center';
+        document.getElementById('calendar-section').appendChild(messageEl);
+    }
+    
+    messageEl.textContent = message;
+    messageEl.className = `mt-4 p-3 rounded-lg text-sm font-medium text-center ${
+        type === 'success' 
+            ? 'bg-green-100 text-green-800 border border-green-200' 
+            : 'bg-red-100 text-red-800 border border-red-200'
+    }`;
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        if (messageEl) messageEl.remove();
+    }, 3000);
 }
 
 // Calendar navigation
@@ -1065,3 +1126,196 @@ document.getElementById('next-month').addEventListener('click', () => {
     renderCalendar();
     loadProgressData();
 });
+
+// Calendar save button
+document.getElementById('save-calendar-btn').addEventListener('click', () => {
+    saveProgressData();
+});
+
+// ─── STANDARD TIMETABLE ──────────────────────────────────────────────
+
+function showStandardTimetableView(uid) {
+    inputCard.classList.add('hidden');
+    headerSection.classList.add('hidden');
+    resultContainer.classList.add('hidden');
+    document.getElementById('timetable-section').classList.add('hidden');
+    document.getElementById('calendar-section').classList.add('hidden');
+    if (timetablesContainer) timetablesContainer.classList.add('hidden');
+
+    if (!standardTimetableContainer) {
+        standardTimetableContainer = document.createElement('div');
+        standardTimetableContainer.id = 'standard-timetable-view';
+        standardTimetableContainer.className = 'max-w-4xl mx-auto py-10 px-4 space-y-5';
+        document.querySelector('main').appendChild(standardTimetableContainer);
+    }
+
+    standardTimetableContainer.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fa-solid fa-calendar-plus text-purple-600"></i>
+                Standard Timetable
+            </h2>
+            <button id="save-standard-timetable-btn" class="hidden px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all transform hover:scale-105 flex items-center gap-2">
+                <i class="fa-solid fa-save"></i>
+                Save Changes
+            </button>
+        </div>
+        <p class="text-gray-600 mb-6">Create your personal daily routine. This is separate from your goal-specific timetables.</p>
+        
+        <div class="card-modern bg-gradient-to-br from-white via-purple-50 to-indigo-50 min-h-[300px]">
+            <div id="standard-timetable-list" class="space-y-3">
+                <!-- Standard timetable entries will be added here -->
+            </div>
+            
+            <button id="add-standard-slot-btn" class="mt-4 text-sm font-semibold text-purple-600 hover:text-purple-800 hover:bg-purple-50 px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 transform hover:scale-105">
+                <i class="fa-solid fa-plus text-xs"></i> Add Time Slot
+            </button>
+        </div>
+    `;
+    
+    standardTimetableContainer.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    loadStandardTimetable(uid);
+    setupStandardTimetableEvents();
+}
+
+function loadStandardTimetable(uid) {
+    const savedTimetable = localStorage.getItem(`standard_timetable_${uid}`);
+    if (savedTimetable) {
+        const timetableData = JSON.parse(savedTimetable);
+        renderStandardTimetable(timetableData);
+    } else {
+        // Create default empty timetable
+        createStandardTimetableRow('08:00 AM', 'Morning Routine');
+        createStandardTimetableRow('12:00 PM', 'Lunch Break');
+        createStandardTimetableRow('06:00 PM', 'Evening Activities');
+    }
+}
+
+function renderStandardTimetable(timetableData) {
+    const list = document.getElementById('standard-timetable-list');
+    list.innerHTML = '';
+    const sorted = [...timetableData].sort((a, b) => compareTimes(a.time, b.time));
+    sorted.forEach(item => createStandardTimetableRow(item.time, item.task));
+}
+
+function createStandardTimetableRow(time = '09:00 AM', task = 'New Activity') {
+    const list = document.getElementById('standard-timetable-list');
+    const row = document.createElement('div');
+    row.className = 'standard-timetable-row animate-fade-in group flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-sm transition-all';
+
+    row.innerHTML = `
+        <div class="drag-handle cursor-grab text-gray-300 hover:text-purple-500 px-1">
+            <i class="fa-solid fa-grip-lines"></i>
+        </div>
+        <input type="text" class="time-input w-24 bg-transparent border-none font-mono text-sm text-purple-600 focus:ring-0" value="${time}">
+        <input type="text" class="task-input flex-1 bg-transparent border-none text-gray-700 focus:ring-0" value="${task}">
+        <button class="remove-row-btn text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <i class="fa-solid fa-trash-can"></i>
+        </button>
+    `;
+
+    row.querySelector('.time-input').addEventListener('blur', () => {
+        resortStandardRows();
+        markStandardTimetableChanged();
+    });
+    row.querySelector('.task-input').addEventListener('blur', () => markStandardTimetableChanged());
+
+    row.querySelector('.remove-row-btn').addEventListener('click', () => {
+        row.remove();
+        markStandardTimetableChanged();
+    });
+
+    list.appendChild(row);
+}
+
+function resortStandardRows() {
+    const list = document.getElementById('standard-timetable-list');
+    const rows = Array.from(list.querySelectorAll('.standard-timetable-row'));
+    const rowData = rows.map(r => ({
+        time: r.querySelector('.time-input').value,
+        task: r.querySelector('.task-input').value
+    }));
+
+    rowData.sort((a, b) => compareTimes(a.time, b.time));
+    list.innerHTML = '';
+    rowData.forEach(d => {
+        createStandardTimetableRow(d.time, d.task);
+    });
+}
+
+function markStandardTimetableChanged() {
+    const saveBtn = document.getElementById('save-standard-timetable-btn');
+    if (saveBtn) {
+        saveBtn.classList.remove('hidden');
+    }
+}
+
+function saveStandardTimetable() {
+    if (!currentUserId) return;
+    
+    const list = document.getElementById('standard-timetable-list');
+    const rows = Array.from(list.querySelectorAll('.standard-timetable-row'));
+    
+    const timetableData = rows.map(r => ({
+        time: r.querySelector('.time-input').value,
+        task: r.querySelector('.task-input').value
+    }));
+    
+    localStorage.setItem(`standard_timetable_${currentUserId}`, JSON.stringify(timetableData));
+    
+    const saveBtn = document.getElementById('save-standard-timetable-btn');
+    if (saveBtn) {
+        saveBtn.classList.add('hidden');
+    }
+    
+    showStandardTimetableMessage('Standard timetable saved successfully!', 'success');
+}
+
+function showStandardTimetableMessage(message, type) {
+    let messageEl = document.getElementById('standard-timetable-message');
+    if (!messageEl) {
+        messageEl = document.createElement('div');
+        messageEl.id = 'standard-timetable-message';
+        messageEl.className = 'mt-4 p-3 rounded-lg text-sm font-medium text-center';
+        standardTimetableContainer.appendChild(messageEl);
+    }
+    
+    messageEl.textContent = message;
+    messageEl.className = `mt-4 p-3 rounded-lg text-sm font-medium text-center ${
+        type === 'success' 
+            ? 'bg-green-100 text-green-800 border border-green-200' 
+            : 'bg-red-100 text-red-800 border border-red-200'
+    }`;
+    
+    setTimeout(() => {
+        if (messageEl) messageEl.remove();
+    }, 3000);
+}
+
+function setupStandardTimetableEvents() {
+    // Add slot button
+    document.getElementById('add-standard-slot-btn').addEventListener('click', () => {
+        createStandardTimetableRow('12:00 PM', 'New Activity');
+        resortStandardRows();
+        markStandardTimetableChanged();
+    });
+    
+    // Save button
+    document.getElementById('save-standard-timetable-btn').addEventListener('click', () => {
+        saveStandardTimetable();
+    });
+    
+    // Setup drag and drop for standard timetable
+    const standardList = document.getElementById('standard-timetable-list');
+    Sortable.create(standardList, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'bg-purple-50',
+        onEnd: () => {
+            resortStandardRows();
+            markStandardTimetableChanged();
+        }
+    });
+}
