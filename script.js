@@ -445,6 +445,7 @@ function showTimetablesView(uid) {
     headerSection.classList.add('hidden');
     resultContainer.classList.add('hidden');
     document.getElementById('timetable-section').classList.add('hidden');
+    document.getElementById('calendar-section').classList.add('hidden'); // Hide calendar
 
     if (!timetablesContainer) {
         timetablesContainer = document.createElement('div');
@@ -485,15 +486,15 @@ function loadTimetablesList(uid, container) {
 
         // Add Standard Timetable card first
         const standardTimetable = localStorage.getItem(`standard_timetable_${uid}`);
+        const standardCard = document.createElement('div');
+        standardCard.className = `
+            bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 p-5 
+            hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group mb-4
+        `;
+
+        let standardPreview = '<p class="text-sm text-gray-400 italic">No entries yet</p>';
         if (standardTimetable) {
             const standardData = JSON.parse(standardTimetable);
-            const standardCard = document.createElement('div');
-            standardCard.className = `
-                bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 p-5 
-                hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group mb-4
-            `;
-
-            let standardPreview = '<p class="text-sm text-gray-400 italic">No entries yet</p>';
             if (standardData.length > 0) {
                 const sorted = [...standardData].sort((a, b) => compareTimes(a.time, b.time));
                 standardPreview = sorted.slice(0, 5).map(item => `
@@ -504,46 +505,36 @@ function loadTimetablesList(uid, container) {
                 `).join('');
                 if (standardData.length > 5) standardPreview += '<div class="text-xs text-gray-400 mt-1">… and ' + (standardData.length - 5) + ' more</div>';
             }
-
-            standardCard.innerHTML = `
-                <div class="flex justify-between items-start mb-3">
-                    <h4 class="font-semibold text-purple-900 group-hover:text-purple-700 transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-star text-purple-500"></i>
-                        Standard Timetable
-                    </h4>
-                    <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full font-medium">
-                        Personal Routine
-                    </span>
-                </div>
-                <div class="space-y-1 mb-4">
-                    ${standardPreview}
-                </div>
-                <div class="text-right">
-                    <span class="text-sm text-purple-600 font-medium group-hover:underline">
-                        Edit standard routine →
-                    </span>
-                </div>
-            `;
-
-            standardCard.addEventListener('click', () => {
-                showStandardTimetableView(uid);
-            });
-
-            fragment.appendChild(standardCard);
         }
 
+        standardCard.innerHTML = `
+            <div class="flex justify-between items-start mb-3">
+                <h4 class="font-semibold text-purple-900 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-star text-purple-500"></i>
+                    Standard Timetable & Calendar
+                </h4>
+                <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full font-medium">
+                    Personal Routine
+                </span>
+            </div>
+            <div class="space-y-1 mb-4">
+                ${standardPreview}
+            </div>
+            <div class="text-right">
+                <span class="text-sm text-purple-600 font-medium group-hover:underline">
+                    Edit standard routine & calendar →
+                </span>
+            </div>
+        `;
+
+        standardCard.addEventListener('click', () => {
+            showStandardTimetableView(uid);
+        });
+
+        fragment.appendChild(standardCard);
+
         if (snapshot.empty) {
-            if (!standardTimetable) {
-                container.innerHTML += `
-                    <div class="text-center py-16 bg-white rounded-2xl border border-gray-200">
-                        <i class="fa-solid fa-calendar-xmark text-6xl text-gray-300 mb-4"></i>
-                        <p class="text-lg font-medium text-gray-600">No timetables yet</p>
-                        <p class="text-sm text-gray-500 mt-2">Generate a plan and create a daily schedule first.</p>
-                    </div>
-                `;
-            } else {
-                container.appendChild(fragment);
-            }
+            container.appendChild(fragment);
             return;
         }
 
@@ -1226,6 +1217,74 @@ function showStandardTimetableView(uid) {
                 <i class="fa-solid fa-plus text-xs"></i> Add Time Slot
             </button>
         </div>
+        
+        <!-- AI Editor Section -->
+        <div id="standard-ai-editor-section" class="hidden bg-white rounded-2xl border border-gray-200 p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-600"></i>
+                    AI Timetable Editor
+                </h3>
+                <button id="standard-toggle-ai-editor" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <textarea id="standard-ai-instruction" class="w-full p-3 border border-gray-300 rounded-lg resize-none" rows="3" placeholder="Tell AI how to modify your standard timetable (e.g., 'Add more study time in the morning' or 'Move workout to evening')"></textarea>
+            <button id="standard-ai-edit-btn" class="mt-3 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Apply AI Changes
+            </button>
+        </div>
+        
+        <button id="standard-show-ai-editor" class="mt-4 text-sm font-semibold text-purple-600 hover:text-purple-800 hover:bg-purple-50 px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 transform hover:scale-105">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Edit Timetable
+        </button>
+        
+        <!-- Standard Calendar Section -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 mt-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-purple-600"></i>
+                    Standard Calendar
+                </h3>
+                <button id="save-standard-calendar-btn" class="hidden px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-save"></i>
+                    Save Calendar
+                </button>
+            </div>
+            <p class="text-gray-600 mb-4">Track your daily routine progress.</p>
+            
+            <div class="flex justify-between items-center mb-4">
+                <button id="standard-prev-month" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <h4 id="standard-current-month" class="text-lg font-semibold text-gray-800"></h4>
+                <button id="standard-next-month" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-7 gap-1 mb-2 text-xs font-medium text-gray-500 text-center">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            </div>
+            
+            <div id="standard-calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            
+            <div class="flex justify-center gap-6 mt-4 text-xs">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span>Completed</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span>Missed</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-gray-300 rounded-full"></div>
+                    <span>Not Started</span>
+                </div>
+            </div>
+        </div>
     `;
     
     standardTimetableContainer.classList.remove('hidden');
@@ -1233,6 +1292,7 @@ function showStandardTimetableView(uid) {
     
     loadStandardTimetable(uid);
     setupStandardTimetableEvents();
+    setupStandardCalendar(uid);
 }
 
 function loadStandardTimetable(uid) {
@@ -1362,19 +1422,259 @@ function setupStandardTimetableEvents() {
         saveStandardTimetable();
     });
     
-    // Setup drag and drop for standard timetable
+    // AI Editor buttons
+    document.getElementById('standard-show-ai-editor').addEventListener('click', () => {
+        document.getElementById('standard-ai-editor-section').classList.remove('hidden');
+        document.getElementById('standard-show-ai-editor').classList.add('hidden');
+        document.getElementById('standard-ai-instruction').focus();
+    });
+    
+    document.getElementById('standard-toggle-ai-editor').addEventListener('click', () => {
+        document.getElementById('standard-ai-editor-section').classList.add('hidden');
+        document.getElementById('standard-show-ai-editor').classList.remove('hidden');
+        document.getElementById('standard-ai-instruction').value = '';
+    });
+    
+    document.getElementById('standard-ai-edit-btn').addEventListener('click', async () => {
+        const instruction = document.getElementById('standard-ai-instruction').value.trim();
+        const aiEditBtn = document.getElementById('standard-ai-edit-btn');
+        
+        if (!instruction) {
+            alert('Please provide instructions for how to modify your standard timetable.');
+            return;
+        }
+        
+        const list = document.getElementById('standard-timetable-list');
+        const rows = Array.from(list.querySelectorAll('.standard-timetable-row'));
+        const currentTimetable = rows.map(r => ({
+            time: r.querySelector('.time-input').value,
+            task: r.querySelector('.task-input').value
+        }));
+        
+        if (currentTimetable.length === 0) {
+            alert('No timetable found to edit. Please add some time slots first.');
+            return;
+        }
+        
+        aiEditBtn.disabled = true;
+        aiEditBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> AI is thinking...`;
+        
+        try {
+            const prompt = `You are an expert time management coach. The user has a standard daily timetable.
+
+CURRENT TIMETABLE:
+${currentTimetable.map(slot => `${slot.time} - ${slot.task}`).join('\n')}
+
+USER REQUEST: "${instruction}"
+
+Please modify the timetable based on the user's request. Return ONLY a JSON object with:
+{
+  "timetable": [{"time": "08:00 AM", "task": "Modified Activity"}, ...]
+}
+
+Make realistic adjustments that address their specific concerns while maintaining a productive schedule.`;
+            
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            
+            if (!response.ok) throw new Error('Failed to get AI suggestions');
+            const result = await response.json();
+            
+            if (result.timetable && result.timetable.length > 0) {
+                renderStandardTimetable(result.timetable);
+                markStandardTimetableChanged();
+                
+                document.getElementById('standard-ai-editor-section').classList.add('hidden');
+                document.getElementById('standard-show-ai-editor').classList.remove('hidden');
+                document.getElementById('standard-ai-instruction').value = '';
+                
+                showStandardTimetableMessage('AI has successfully updated your standard timetable!', 'success');
+            } else {
+                throw new Error('AI could not generate a valid timetable');
+            }
+        } catch (error) {
+            console.error('AI edit error:', error);
+            showStandardTimetableMessage('Error: ' + error.message + '. Please try again.', 'error');
+        } finally {
+            aiEditBtn.disabled = false;
+            aiEditBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Apply AI Changes`;
+        }
+    });
+    
+    // Setup drag and drop for standard timetable with auto-positioning
     const standardList = document.getElementById('standard-timetable-list');
     Sortable.create(standardList, {
         handle: '.drag-handle',
         animation: 150,
         ghostClass: 'bg-purple-50',
-        onEnd: () => {
+        onEnd: (evt) => {
+            const rows = Array.from(standardList.querySelectorAll('.standard-timetable-row'));
+            const draggedRow = rows[evt.newIndex];
+            
+            if (!draggedRow) return;
+
+            const prevRow = rows[evt.newIndex - 1];
+            const nextRow = rows[evt.newIndex + 1];
+
+            if (prevRow && nextRow) {
+                const prevTime = prevRow.querySelector('.time-input').value;
+                const nextTime = nextRow.querySelector('.time-input').value;
+                const midTime = calculateMidpointTime(prevTime, nextTime);
+                draggedRow.querySelector('.time-input').value = midTime;
+            } else if (prevRow) {
+                const prevTime = prevRow.querySelector('.time-input').value;
+                const newTime = addMinutesToTime(prevTime, 30);
+                draggedRow.querySelector('.time-input').value = newTime;
+            } else if (nextRow) {
+                const nextTime = nextRow.querySelector('.time-input').value;
+                const newTime = subtractMinutesFromTime(nextTime, 30);
+                draggedRow.querySelector('.time-input').value = newTime;
+            }
+
             resortStandardRows();
             markStandardTimetableChanged();
         }
     });
 }
 
-// Remove all the complex standard calendar code - keep it simple
 // Declare standardTimetableContainer globally
 let standardTimetableContainer = null;
+let standardCalendarDate = new Date();
+let standardProgressData = new Map();
+
+// Standard Calendar Functions
+function setupStandardCalendar(uid) {
+    standardCalendarDate = new Date();
+    renderStandardCalendar();
+    loadStandardProgressData(uid);
+    
+    document.getElementById('standard-prev-month').addEventListener('click', () => {
+        standardCalendarDate.setMonth(standardCalendarDate.getMonth() - 1);
+        renderStandardCalendar();
+        loadStandardProgressData(uid);
+    });
+    
+    document.getElementById('standard-next-month').addEventListener('click', () => {
+        standardCalendarDate.setMonth(standardCalendarDate.getMonth() + 1);
+        renderStandardCalendar();
+        loadStandardProgressData(uid);
+    });
+    
+    document.getElementById('save-standard-calendar-btn').addEventListener('click', () => {
+        saveStandardProgressData(uid);
+    });
+}
+
+function renderStandardCalendar() {
+    const calendarGrid = document.getElementById('standard-calendar-grid');
+    const currentMonthEl = document.getElementById('standard-current-month');
+    
+    if (!calendarGrid || !currentMonthEl) return;
+    
+    const year = standardCalendarDate.getFullYear();
+    const month = standardCalendarDate.getMonth();
+    
+    currentMonthEl.textContent = new Date(year, month).toLocaleDateString('en-US', { 
+        month: 'long', 
+        year: 'numeric' 
+    });
+    
+    calendarGrid.innerHTML = '';
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'h-12';
+        calendarGrid.appendChild(emptyDay);
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const today = new Date().toISOString().split('T')[0];
+        
+        dayEl.className = `h-12 flex items-center justify-center rounded-lg cursor-pointer transition-all hover:scale-105 ${
+            dateStr === today ? 'ring-2 ring-purple-500' : ''
+        }`;
+        
+        dayEl.innerHTML = `
+            <div class="text-center">
+                <div class="text-sm font-medium">${day}</div>
+                <div class="w-2 h-2 rounded-full mx-auto mt-1 standard-progress-dot" data-date="${dateStr}"></div>
+            </div>
+        `;
+        
+        updateStandardDayStatus(dayEl, dateStr);
+        dayEl.addEventListener('click', () => toggleStandardDayStatus(dateStr, dayEl));
+        calendarGrid.appendChild(dayEl);
+    }
+}
+
+function updateStandardDayStatus(dayEl, dateStr) {
+    const dot = dayEl.querySelector('.standard-progress-dot');
+    const status = standardProgressData.get(dateStr) || 'not-started';
+    
+    dot.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-300');
+    dayEl.classList.remove('bg-green-50', 'bg-red-50', 'bg-gray-50');
+    
+    switch (status) {
+        case 'completed':
+            dot.classList.add('bg-green-500');
+            dayEl.classList.add('bg-green-50');
+            break;
+        case 'missed':
+            dot.classList.add('bg-red-500');
+            dayEl.classList.add('bg-red-50');
+            break;
+        default:
+            dot.classList.add('bg-gray-300');
+            dayEl.classList.add('bg-gray-50');
+    }
+}
+
+function toggleStandardDayStatus(dateStr, dayEl) {
+    const currentStatus = standardProgressData.get(dateStr) || 'not-started';
+    let newStatus = currentStatus === 'not-started' ? 'completed' : currentStatus === 'completed' ? 'missed' : 'not-started';
+    
+    standardProgressData.set(dateStr, newStatus);
+    updateStandardDayStatus(dayEl, dateStr);
+    
+    const saveBtn = document.getElementById('save-standard-calendar-btn');
+    if (saveBtn) saveBtn.classList.remove('hidden');
+}
+
+function loadStandardProgressData(uid) {
+    const savedProgress = localStorage.getItem(`standard_calendar_${uid}`);
+    if (savedProgress) {
+        const data = JSON.parse(savedProgress);
+        standardProgressData = new Map(Object.entries(data));
+        
+        setTimeout(() => {
+            document.querySelectorAll('.standard-progress-dot').forEach(dot => {
+                const dateStr = dot.getAttribute('data-date');
+                if (dateStr) {
+                    const dayEl = dot.closest('div').parentElement;
+                    if (dayEl) updateStandardDayStatus(dayEl, dateStr);
+                }
+            });
+        }, 50);
+    }
+    
+    const saveBtn = document.getElementById('save-standard-calendar-btn');
+    if (saveBtn) saveBtn.classList.add('hidden');
+}
+
+function saveStandardProgressData(uid) {
+    const dataObj = Object.fromEntries(standardProgressData);
+    localStorage.setItem(`standard_calendar_${uid}`, JSON.stringify(dataObj));
+    
+    const saveBtn = document.getElementById('save-standard-calendar-btn');
+    if (saveBtn) saveBtn.classList.add('hidden');
+    
+    showStandardTimetableMessage('Standard calendar saved successfully!', 'success');
+}
