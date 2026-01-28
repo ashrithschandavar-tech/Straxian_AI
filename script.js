@@ -1099,37 +1099,34 @@ function toggleDayStatus(dateStr, dayEl) {
 function loadProgressData() {
     if (!currentDocId || !currentUserId) return;
     
-    // Make calendar data specific to this exact chat
-    const savedProgress = localStorage.getItem(`chat_progress_${currentUserId}_${currentDocId}`);
+    // Simple fix: each chat gets its own calendar data
+    const savedProgress = localStorage.getItem(`calendar_${currentDocId}`);
     if (savedProgress) {
         const data = JSON.parse(savedProgress);
         progressData = new Map(Object.entries(data));
         
         // Update calendar display
-        setTimeout(() => {
-            document.querySelectorAll('.progress-dot').forEach(dot => {
-                const dateStr = dot.getAttribute('data-date');
-                if (dateStr) {
-                    const dayEl = dot.closest('div').parentElement;
-                    if (dayEl) updateDayStatus(dayEl, dateStr);
-                }
-            });
-        }, 100);
+        document.querySelectorAll('.progress-dot').forEach(dot => {
+            const dateStr = dot.getAttribute('data-date');
+            const dayEl = dot.closest('div').parentElement;
+            updateDayStatus(dayEl, dateStr);
+        });
+    } else {
+        // Clear calendar for new chat
+        progressData = new Map();
     }
     
-    // Reset unsaved changes flag when loading
     calendarHasUnsavedChanges = false;
     hideCalendarSaveButton();
 }
 
 function saveProgressData() {
-    if (!currentDocId || !currentUserId) return;
+    if (!currentDocId) return;
     
     const dataObj = Object.fromEntries(progressData);
-    // Make calendar data specific to this exact chat
-    localStorage.setItem(`chat_progress_${currentUserId}_${currentDocId}`, JSON.stringify(dataObj));
+    // Simple fix: save calendar data per chat
+    localStorage.setItem(`calendar_${currentDocId}`, JSON.stringify(dataObj));
     
-    // Hide save button and mark as saved
     calendarHasUnsavedChanges = false;
     hideCalendarSaveButton();
     showCalendarMessage('Calendar progress saved successfully!', 'success');
@@ -1229,52 +1226,6 @@ function showStandardTimetableView(uid) {
                 <i class="fa-solid fa-plus text-xs"></i> Add Time Slot
             </button>
         </div>
-        
-        <!-- Standard Calendar Section -->
-        <div class="bg-white rounded-2xl border border-gray-200 p-6 mt-8">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-days text-purple-600"></i>
-                    Standard Calendar
-                </h3>
-                <button id="save-standard-calendar-btn" class="hidden px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-save"></i>
-                    Save Calendar
-                </button>
-            </div>
-            <p class="text-gray-600 mb-4">Track your daily routine progress.</p>
-            
-            <div class="flex justify-between items-center mb-4">
-                <button id="standard-prev-month" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <h4 id="standard-current-month" class="text-lg font-semibold text-gray-800"></h4>
-                <button id="standard-next-month" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-            
-            <div class="grid grid-cols-7 gap-1 mb-2 text-xs font-medium text-gray-500 text-center">
-                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            
-            <div id="standard-calendar-grid" class="grid grid-cols-7 gap-1"></div>
-            
-            <div class="flex justify-center gap-6 mt-4 text-xs">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span>Completed</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span>Missed</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-gray-300 rounded-full"></div>
-                    <span>Not Started</span>
-                </div>
-            </div>
-        </div>
     `;
     
     standardTimetableContainer.classList.remove('hidden');
@@ -1282,7 +1233,6 @@ function showStandardTimetableView(uid) {
     
     loadStandardTimetable(uid);
     setupStandardTimetableEvents();
-    setupStandardCalendar(uid);
 }
 
 function loadStandardTimetable(uid) {
@@ -1425,179 +1375,6 @@ function setupStandardTimetableEvents() {
     });
 }
 
+// Remove all the complex standard calendar code - keep it simple
 // Declare standardTimetableContainer globally
 let standardTimetableContainer = null;
-let standardCalendarDate = new Date();
-let standardProgressData = new Map();
-
-// ─── STANDARD CALENDAR FUNCTIONS ─────────────────────────────────────
-
-function setupStandardCalendar(uid) {
-    // Wait for DOM to be ready
-    setTimeout(() => {
-        const prevBtn = document.getElementById('standard-prev-month');
-        const nextBtn = document.getElementById('standard-next-month');
-        const saveBtn = document.getElementById('save-standard-calendar-btn');
-        
-        if (!prevBtn || !nextBtn || !saveBtn) {
-            console.log('Standard calendar elements not ready, retrying...');
-            setupStandardCalendar(uid);
-            return;
-        }
-        
-        standardCalendarDate = new Date();
-        renderStandardCalendar();
-        loadStandardProgressData(uid);
-        
-        // Remove existing listeners to prevent duplicates
-        prevBtn.replaceWith(prevBtn.cloneNode(true));
-        nextBtn.replaceWith(nextBtn.cloneNode(true));
-        saveBtn.replaceWith(saveBtn.cloneNode(true));
-        
-        // Add fresh listeners
-        document.getElementById('standard-prev-month').addEventListener('click', () => {
-            standardCalendarDate.setMonth(standardCalendarDate.getMonth() - 1);
-            renderStandardCalendar();
-            loadStandardProgressData(uid);
-        });
-        
-        document.getElementById('standard-next-month').addEventListener('click', () => {
-            standardCalendarDate.setMonth(standardCalendarDate.getMonth() + 1);
-            renderStandardCalendar();
-            loadStandardProgressData(uid);
-        });
-        
-        document.getElementById('save-standard-calendar-btn').addEventListener('click', () => {
-            saveStandardProgressData(uid);
-        });
-    }, 200);
-}
-
-function renderStandardCalendar() {
-    const calendarGrid = document.getElementById('standard-calendar-grid');
-    const currentMonthEl = document.getElementById('standard-current-month');
-    
-    if (!calendarGrid || !currentMonthEl) return;
-    
-    const year = standardCalendarDate.getFullYear();
-    const month = standardCalendarDate.getMonth();
-    
-    currentMonthEl.textContent = new Date(year, month).toLocaleDateString('en-US', { 
-        month: 'long', 
-        year: 'numeric' 
-    });
-    
-    calendarGrid.innerHTML = '';
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // Empty cells
-    for (let i = 0; i < firstDay; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'h-12';
-        calendarGrid.appendChild(emptyDay);
-    }
-    
-    // Days
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayEl = document.createElement('div');
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const today = new Date().toISOString().split('T')[0];
-        
-        dayEl.className = `h-12 flex items-center justify-center rounded-lg cursor-pointer transition-all hover:scale-105 ${
-            dateStr === today ? 'ring-2 ring-purple-500' : ''
-        }`;
-        
-        dayEl.innerHTML = `
-            <div class="text-center">
-                <div class="text-sm font-medium">${day}</div>
-                <div class="w-2 h-2 rounded-full mx-auto mt-1 standard-progress-dot" data-date="${dateStr}"></div>
-            </div>
-        `;
-        
-        updateStandardDayStatus(dayEl, dateStr);
-        
-        dayEl.addEventListener('click', () => toggleStandardDayStatus(dateStr, dayEl));
-        
-        calendarGrid.appendChild(dayEl);
-    }
-}
-
-function updateStandardDayStatus(dayEl, dateStr) {
-    const dot = dayEl.querySelector('.standard-progress-dot');
-    const status = standardProgressData.get(dateStr) || 'not-started';
-    
-    dot.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-300');
-    dayEl.classList.remove('bg-green-50', 'bg-red-50', 'bg-gray-50');
-    
-    switch (status) {
-        case 'completed':
-            dot.classList.add('bg-green-500');
-            dayEl.classList.add('bg-green-50');
-            break;
-        case 'missed':
-            dot.classList.add('bg-red-500');
-            dayEl.classList.add('bg-red-50');
-            break;
-        default:
-            dot.classList.add('bg-gray-300');
-            dayEl.classList.add('bg-gray-50');
-    }
-}
-
-function toggleStandardDayStatus(dateStr, dayEl) {
-    const currentStatus = standardProgressData.get(dateStr) || 'not-started';
-    let newStatus;
-    
-    switch (currentStatus) {
-        case 'not-started':
-            newStatus = 'completed';
-            break;
-        case 'completed':
-            newStatus = 'missed';
-            break;
-        case 'missed':
-            newStatus = 'not-started';
-            break;
-        default:
-            newStatus = 'completed';
-    }
-    
-    standardProgressData.set(dateStr, newStatus);
-    updateStandardDayStatus(dayEl, dateStr);
-    
-    const saveBtn = document.getElementById('save-standard-calendar-btn');
-    if (saveBtn) saveBtn.classList.remove('hidden');
-}
-
-function loadStandardProgressData(uid) {
-    const savedProgress = localStorage.getItem(`standard_calendar_${uid}`);
-    if (savedProgress) {
-        const data = JSON.parse(savedProgress);
-        standardProgressData = new Map(Object.entries(data));
-        
-        setTimeout(() => {
-            document.querySelectorAll('.standard-progress-dot').forEach(dot => {
-                const dateStr = dot.getAttribute('data-date');
-                if (dateStr) {
-                    const dayEl = dot.closest('div').parentElement;
-                    if (dayEl) updateStandardDayStatus(dayEl, dateStr);
-                }
-            });
-        }, 50);
-    }
-    
-    const saveBtn = document.getElementById('save-standard-calendar-btn');
-    if (saveBtn) saveBtn.classList.add('hidden');
-}
-
-function saveStandardProgressData(uid) {
-    const dataObj = Object.fromEntries(standardProgressData);
-    localStorage.setItem(`standard_calendar_${uid}`, JSON.stringify(dataObj));
-    
-    const saveBtn = document.getElementById('save-standard-calendar-btn');
-    if (saveBtn) saveBtn.classList.add('hidden');
-    
-    showStandardTimetableMessage('Standard calendar saved successfully!', 'success');
-}
