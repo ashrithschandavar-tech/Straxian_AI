@@ -38,7 +38,6 @@ const myNotesBtn = document.getElementById('my-notes-btn');
 let currentPlanData = null;
 let currentDocId = null;
 let timetablesContainer = null;
-let standardTimetableContainer = null;
 let currentUserId = null;
 let showArchive = false;  // Track which tab is active
 let calendarHasUnsavedChanges = false;  // Track calendar changes
@@ -1125,6 +1124,11 @@ document.getElementById('next-month').addEventListener('click', () => {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
     renderCalendar();
     loadProgressData();
+});
+
+// Calendar save button
+document.getElementById('save-calendar-btn').addEventListener('click', () => {
+    saveProgressData();
 });
 
 // Calendar save button
