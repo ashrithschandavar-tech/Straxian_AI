@@ -481,18 +481,71 @@ function loadTimetablesList(uid, container) {
             </h2>
         `;
 
-        if (snapshot.empty) {
-            container.innerHTML += `
-                <div class="text-center py-16 bg-white rounded-2xl border border-gray-200">
-                    <i class="fa-solid fa-calendar-xmark text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-lg font-medium text-gray-600">No timetables yet</p>
-                    <p class="text-sm text-gray-500 mt-2">Generate a plan and create a daily schedule first.</p>
+        const fragment = document.createDocumentFragment();
+
+        // Add Standard Timetable card first
+        const standardTimetable = localStorage.getItem(`standard_timetable_${uid}`);
+        if (standardTimetable) {
+            const standardData = JSON.parse(standardTimetable);
+            const standardCard = document.createElement('div');
+            standardCard.className = `
+                bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 p-5 
+                hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group mb-4
+            `;
+
+            let standardPreview = '<p class="text-sm text-gray-400 italic">No entries yet</p>';
+            if (standardData.length > 0) {
+                const sorted = [...standardData].sort((a, b) => compareTimes(a.time, b.time));
+                standardPreview = sorted.slice(0, 5).map(item => `
+                    <div class="flex gap-3 text-sm py-0.5">
+                        <span class="font-mono text-purple-600 w-20 shrink-0">${item.time}</span>
+                        <span class="truncate">${item.task}</span>
+                    </div>
+                `).join('');
+                if (standardData.length > 5) standardPreview += '<div class="text-xs text-gray-400 mt-1">… and ' + (standardData.length - 5) + ' more</div>';
+            }
+
+            standardCard.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-semibold text-purple-900 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-star text-purple-500"></i>
+                        Standard Timetable
+                    </h4>
+                    <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full font-medium">
+                        Personal Routine
+                    </span>
+                </div>
+                <div class="space-y-1 mb-4">
+                    ${standardPreview}
+                </div>
+                <div class="text-right">
+                    <span class="text-sm text-purple-600 font-medium group-hover:underline">
+                        Edit standard routine →
+                    </span>
                 </div>
             `;
-            return;
+
+            standardCard.addEventListener('click', () => {
+                showStandardTimetableView(uid);
+            });
+
+            fragment.appendChild(standardCard);
         }
 
-        const fragment = document.createDocumentFragment();
+        if (snapshot.empty) {
+            if (!standardTimetable) {
+                container.innerHTML += `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-gray-200">
+                        <i class="fa-solid fa-calendar-xmark text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-600">No timetables yet</p>
+                        <p class="text-sm text-gray-500 mt-2">Generate a plan and create a daily schedule first.</p>
+                    </div>
+                `;
+            } else {
+                container.appendChild(fragment);
+            }
+            return;
+        }
 
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -1044,9 +1097,10 @@ function toggleDayStatus(dateStr, dayEl) {
 }
 
 function loadProgressData() {
-    if (!currentDocId) return;
+    if (!currentDocId || !currentUserId) return;
     
-    const savedProgress = localStorage.getItem(`progress_${currentDocId}`);
+    // Make calendar data specific to both user and chat
+    const savedProgress = localStorage.getItem(`progress_${currentUserId}_${currentDocId}`);
     if (savedProgress) {
         const data = JSON.parse(savedProgress);
         progressData = new Map(Object.entries(data));
@@ -1065,10 +1119,11 @@ function loadProgressData() {
 }
 
 function saveProgressData() {
-    if (!currentDocId) return;
+    if (!currentDocId || !currentUserId) return;
     
     const dataObj = Object.fromEntries(progressData);
-    localStorage.setItem(`progress_${currentDocId}`, JSON.stringify(dataObj));
+    // Make calendar data specific to both user and chat
+    localStorage.setItem(`progress_${currentUserId}_${currentDocId}`, JSON.stringify(dataObj));
     
     // Hide save button and mark as saved
     calendarHasUnsavedChanges = false;
@@ -1124,11 +1179,6 @@ document.getElementById('next-month').addEventListener('click', () => {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
     renderCalendar();
     loadProgressData();
-});
-
-// Calendar save button
-document.getElementById('save-calendar-btn').addEventListener('click', () => {
-    saveProgressData();
 });
 
 // Calendar save button
@@ -1323,3 +1373,6 @@ function setupStandardTimetableEvents() {
         }
     });
 }
+
+// Declare standardTimetableContainer globally
+let standardTimetableContainer = null;
