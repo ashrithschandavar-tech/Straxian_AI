@@ -932,11 +932,32 @@ function showTimetableMessage(message, type) {
     }
     
     messageEl.textContent = message;
-    messageEl.className = `mt-4 p-3 rounded-lg text-sm font-medium text-center ${
-        type === 'success' 
-            ? 'bg-green-100 text-green-800 border border-green-200' 
-            : 'bg-red-100 text-red-800 border border-red-200'
-    }`;
+    
+    // Handle different message types
+    let bgClass, textClass, borderClass;
+    switch(type) {
+        case 'success':
+            bgClass = 'bg-green-100';
+            textClass = 'text-green-800';
+            borderClass = 'border-green-200';
+            break;
+        case 'error':
+            bgClass = 'bg-red-100';
+            textClass = 'text-red-800';
+            borderClass = 'border-red-200';
+            break;
+        case 'info':
+            bgClass = 'bg-blue-100';
+            textClass = 'text-blue-800';
+            borderClass = 'border-blue-200';
+            break;
+        default:
+            bgClass = 'bg-gray-100';
+            textClass = 'text-gray-800';
+            borderClass = 'border-gray-200';
+    }
+    
+    messageEl.className = `mt-4 p-3 rounded-lg text-sm font-medium text-center ${bgClass} ${textClass} border ${borderClass}`;
     
     // Auto-hide after 5 seconds
     setTimeout(() => {
