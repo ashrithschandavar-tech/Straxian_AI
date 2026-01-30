@@ -710,6 +710,10 @@ function renderTimetable(timetableData) {
     const showAiBtn = document.getElementById('show-ai-editor');
     if (showAiBtn && timetableData && timetableData.length > 0) {
         showAiBtn.classList.remove('hidden');
+        // Add AI Coach button
+        setTimeout(() => {
+            addAICoachButton();
+        }, 100);
     }
 }
 
@@ -1930,4 +1934,211 @@ function getCurrentStandardTimetable() {
         time: r.querySelector('.time-input').value,
         task: r.querySelector('.task-input').value
     }));
+}
+
+// AI Coach for Individual Chats
+function addAICoachButton() {
+    const showAiBtn = document.getElementById('show-ai-editor');
+    if (showAiBtn && !document.getElementById('ai-coach-btn')) {
+        const coachBtn = document.createElement('button');
+        coachBtn.id = 'ai-coach-btn';
+        coachBtn.className = 'ml-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm';
+        coachBtn.innerHTML = '<i class="fa-solid fa-user-tie mr-2"></i>AI Coach';
+        
+        coachBtn.addEventListener('click', () => {
+            showAICoachModal();
+        });
+        
+        showAiBtn.parentNode.insertBefore(coachBtn, showAiBtn.nextSibling);
+    }
+}
+
+function showAICoachModal() {
+    if (!currentDocId || !currentPlanData) {
+        alert('Please open a chat with a timetable first.');
+        return;
+    }
+    
+    const analysis = analyzeChatProgress();
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-lg w-full mx-4 shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-user-tie text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">AI Coach Analysis</h3>
+                <p class="text-gray-600 text-sm mt-2">Chat: ${currentPlanData.title || 'Current Goal'}</p>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Completion Rate:</span>
+                    <span class="font-semibold ${analysis.completionRate >= 70 ? 'text-green-600' : 'text-red-600'}">
+                        ${analysis.completionRate.toFixed(1)}%
+                    </span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Missed Days:</span>
+                    <span class="font-semibold ${analysis.missedDays > 5 ? 'text-red-600' : 'text-gray-800'}">
+                        ${analysis.missedDays} days
+                    </span>
+                </div>
+            </div>
+            
+            ${analysis.needsAdjustment ? `
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                    <p class="text-orange-800 text-sm">
+                        <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+                        Your progress needs improvement. Let me help adjust your timetable.
+                    </p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">What's causing you to miss days?</label>
+                    <textarea id="problem-reason" class="w-full p-3 border border-gray-300 rounded-lg resize-none" rows="3" placeholder="e.g., Too tired in mornings, work overload, lack of motivation..."></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button id="adjust-chat-timetable-btn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                        Adjust Timetable
+                    </button>
+                    <button id="dismiss-coach-btn" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                        Dismiss
+                    </button>
+                </div>
+            ` : `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <p class="text-green-800 text-sm">
+                        <i class="fa-solid fa-check-circle mr-2"></i>
+                        Great job! You're on track with your goals.
+                    </p>
+                </div>
+                
+                <button id="dismiss-coach-btn" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    Continue Good Work!
+                </button>
+            `}
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    if (analysis.needsAdjustment) {
+        document.getElementById('adjust-chat-timetable-btn').addEventListener('click', () => {
+            const reason = document.getElementById('problem-reason').value.trim();
+            if (!reason) {
+                alert('Please tell me what\'s causing you to miss days.');
+                return;
+            }
+            document.body.removeChild(modal);
+            generateAdaptedTimetable(analysis, reason);
+        });
+    }
+    
+    document.getElementById('dismiss-coach-btn').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+function analyzeChatProgress() {
+    if (!currentDocId) return { needsAdjustment: false, completionRate: 0, missedDays: 0 };
+    
+    const savedProgress = localStorage.getItem(`calendar_${currentDocId}`);
+    if (!savedProgress) return { needsAdjustment: false, completionRate: 0, missedDays: 0 };
+    
+    const data = JSON.parse(savedProgress);
+    const progressMap = new Map(Object.entries(data));
+    
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    let totalDays = 0;
+    let completedDays = 0;
+    let missedDays = 0;
+    
+    for (let d = new Date(thirtyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const status = progressMap.get(dateStr);
+        
+        if (status) {
+            totalDays++;
+            if (status === 'completed') {
+                completedDays++;
+            } else if (status === 'missed') {
+                missedDays++;
+            }
+        }
+    }
+    
+    const completionRate = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
+    
+    return {
+        totalDays,
+        completedDays,
+        missedDays,
+        completionRate,
+        needsAdjustment: completionRate < 70 || missedDays > 5
+    };
+}
+
+async function generateAdaptedTimetable(analysis, problemReason) {
+    if (!currentPlanData || !currentPlanData.timetable) {
+        alert('No timetable found to adjust.');
+        return;
+    }
+    
+    const currentTimetable = currentPlanData.timetable;
+    const goalTitle = currentPlanData.title || 'Goal';
+    
+    try {
+        const prompt = `You are an AI coach. The user is struggling with their goal: "${goalTitle}"
+
+CURRENT TIMETABLE:
+${currentTimetable.map(slot => `${slot.time} - ${slot.task}`).join('\n')}
+
+PROGRESS ANALYSIS:
+- Completion Rate: ${analysis.completionRate.toFixed(1)}%
+- Missed Days: ${analysis.missedDays}
+
+USER'S PROBLEM: "${problemReason}"
+
+Based on their specific problem, adapt the timetable to be more realistic and achievable. Address their exact issue.
+
+Return ONLY a JSON object:
+{
+  "timetable": [{"time": "08:00 AM", "task": "Adapted Activity"}, ...],
+  "explanation": "How this addresses your specific problem"
+}`;
+        
+        showTimetableMessage('AI Coach is adapting your timetable based on your problem...', 'info');
+        
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate adapted timetable');
+        const result = await response.json();
+        
+        if (result.timetable && result.timetable.length > 0) {
+            currentPlanData.timetable = result.timetable;
+            renderTimetable(result.timetable);
+            await saveTimetableState();
+            
+            showTimetableMessage(
+                `Timetable adapted! ${result.explanation || 'Schedule has been adjusted based on your specific problem.'}`, 
+                'success'
+            );
+        } else {
+            throw new Error('AI could not generate a valid adapted timetable');
+        }
+    } catch (error) {
+        console.error('Adapted timetable generation error:', error);
+        showTimetableMessage('Error adapting timetable: ' + error.message, 'error');
+    }
 }
