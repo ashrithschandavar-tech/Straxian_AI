@@ -7,12 +7,31 @@ class AIAssistant {
     }
 
     init() {
+        // Wait for DOM to be ready and sidebar to exist
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => this.setup(), 100);
+            });
+        } else {
+            setTimeout(() => this.setup(), 100);
+        }
+    }
+
+    setup() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) {
+            console.log('Sidebar not found, AI Assistant not initialized');
+            return;
+        }
         this.createAssistantButton();
         this.createAssistantModal();
         this.setupEventListeners();
     }
 
     createAssistantButton() {
+        // Check if button already exists
+        if (document.getElementById('ai-assistant-btn')) return;
+        
         const assistantBtn = document.createElement('button');
         assistantBtn.id = 'ai-assistant-btn';
         assistantBtn.className = 'w-full flex items-center gap-3 p-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all group';
@@ -24,11 +43,13 @@ class AIAssistant {
             <div class="ml-auto w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
         `;
 
-        // Add to sidebar in both app and notes
+        // Add to sidebar
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
-            const historySection = sidebar.querySelector('#history-list').parentElement;
-            historySection.parentElement.insertBefore(assistantBtn, historySection);
+            const historySection = sidebar.querySelector('#history-list');
+            if (historySection && historySection.parentElement) {
+                historySection.parentElement.insertBefore(assistantBtn, historySection);
+            }
         }
     }
 
@@ -116,18 +137,30 @@ class AIAssistant {
     }
 
     setupEventListeners() {
+        // Check if elements exist before adding listeners
+        const assistantBtn = document.getElementById('ai-assistant-btn');
+        const closeBtn = document.getElementById('close-assistant');
+        const modal = document.getElementById('ai-assistant-modal');
+        const sendBtn = document.getElementById('send-assistant-message');
+        const input = document.getElementById('assistant-input');
+        
+        if (!assistantBtn || !closeBtn || !modal || !sendBtn || !input) {
+            console.log('AI Assistant elements not found');
+            return;
+        }
+
         // Open assistant
-        document.getElementById('ai-assistant-btn').addEventListener('click', () => {
+        assistantBtn.addEventListener('click', () => {
             this.openAssistant();
         });
 
         // Close assistant
-        document.getElementById('close-assistant').addEventListener('click', () => {
+        closeBtn.addEventListener('click', () => {
             this.closeAssistant();
         });
 
         // Close on backdrop click
-        document.getElementById('ai-assistant-modal').addEventListener('click', (e) => {
+        modal.addEventListener('click', (e) => {
             if (e.target.id === 'ai-assistant-modal') {
                 this.closeAssistant();
             }
@@ -142,12 +175,12 @@ class AIAssistant {
         });
 
         // Send message
-        document.getElementById('send-assistant-message').addEventListener('click', () => {
+        sendBtn.addEventListener('click', () => {
             this.sendMessage();
         });
 
         // Enter to send
-        document.getElementById('assistant-input').addEventListener('keydown', (e) => {
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 this.sendMessage();
@@ -305,6 +338,14 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
 }
 
 // Initialize AI Assistant when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new AIAssistant();
-});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            new AIAssistant();
+        }, 500);
+    });
+} else {
+    setTimeout(() => {
+        new AIAssistant();
+    }, 500);
+}
