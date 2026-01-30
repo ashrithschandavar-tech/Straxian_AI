@@ -2135,7 +2135,7 @@ Return ONLY a JSON object:
   "explanation": "How this addresses your specific problem"
 }`;
         
-        showTimetableMessage('AI Coach is adapting your timetable based on your problem...', 'info');
+        showTimetableMessage('Adapting...', 'info');
         
         const response = await fetch('/api/generate', {
             method: 'POST',
