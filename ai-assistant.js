@@ -240,7 +240,7 @@ ${chatContext}
 
 User Request: "${message}"
 
-Provide a helpful response. If the user asks to edit, modify, or change anything, politely redirect them to go to the specific chat for changes.`;
+Provide a helpful response. If the user asks to edit, modify, or change anything, politely redirect them to go to the specific chat for changes. Keep responses concise and helpful.`;
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
@@ -252,9 +252,24 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
             const result = await response.json();
 
             this.hideTyping();
-            this.addMessage(result.response || result.text || "I'm here to help! What would you like me to do?", 'assistant');
+            
+            // Handle different response formats
+            let responseText = "I'm here to help! What would you like me to do?";
+            if (typeof result === 'string') {
+                responseText = result;
+            } else if (result.response) {
+                responseText = result.response;
+            } else if (result.text) {
+                responseText = result.text;
+            } else if (result.title || result.description) {
+                // Handle plan-like responses
+                responseText = `${result.title || 'Generated Content'}\n\n${result.description || 'Content generated successfully.'}`;
+            }
+            
+            this.addMessage(responseText, 'assistant');
 
         } catch (error) {
+            console.error('AI Assistant error:', error);
             this.hideTyping();
             this.addMessage("Sorry, I encountered an error. Please try again.", 'assistant');
         }
