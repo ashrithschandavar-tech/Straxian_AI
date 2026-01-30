@@ -1296,6 +1296,11 @@ function showStandardTimetableView(uid) {
     loadStandardTimetable(uid);
     setupStandardTimetableEvents();
     setupStandardCalendar(uid);
+    
+    // Add progress analysis button after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        addProgressAnalysisButton();
+    }, 100);
 }
 
 function loadStandardTimetable(uid) {
@@ -1680,4 +1685,250 @@ function saveStandardProgressData(uid) {
     if (saveBtn) saveBtn.classList.add('hidden');
     
     showStandardTimetableMessage('Standard calendar saved successfully!', 'success');
+}
+
+// AI Progress Analysis and Timetable Adjustment
+function analyzeProgressAndAdjustTimetable(uid, taskDescription) {
+    const progressAnalysis = analyzeCalendarProgress();
+    
+    if (progressAnalysis.needsAdjustment) {
+        showProgressAnalysisModal(progressAnalysis, uid, taskDescription);
+    } else {
+        showStandardTimetableMessage('Great job! You\'re on track with your goals.', 'success');
+    }
+}
+
+function analyzeCalendarProgress() {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    let totalDays = 0;
+    let completedDays = 0;
+    let missedDays = 0;
+    let recentMissedStreak = 0;
+    let currentStreak = 0;
+    
+    // Analyze last 30 days
+    for (let d = new Date(thirtyDaysAgo); d <= today; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const status = standardProgressData.get(dateStr);
+        
+        if (status) {
+            totalDays++;
+            if (status === 'completed') {
+                completedDays++;
+                currentStreak++;
+                recentMissedStreak = 0;
+            } else if (status === 'missed') {
+                missedDays++;
+                recentMissedStreak++;
+                currentStreak = 0;
+            }
+        }
+    }
+    
+    const completionRate = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
+    const missedRate = totalDays > 0 ? (missedDays / totalDays) * 100 : 0;
+    
+    return {
+        totalDays,
+        completedDays,
+        missedDays,
+        completionRate,
+        missedRate,
+        recentMissedStreak,
+        currentStreak,
+        needsAdjustment: completionRate < 70 || recentMissedStreak >= 3 || missedRate > 30
+    };
+}
+
+function showProgressAnalysisModal(analysis, uid, taskDescription) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-chart-line text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Progress Analysis</h3>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Completion Rate:</span>
+                    <span class="font-semibold ${analysis.completionRate >= 70 ? 'text-green-600' : 'text-red-600'}">
+                        ${analysis.completionRate.toFixed(1)}%
+                    </span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Recent Missed Streak:</span>
+                    <span class="font-semibold ${analysis.recentMissedStreak >= 3 ? 'text-red-600' : 'text-gray-800'}">
+                        ${analysis.recentMissedStreak} days
+                    </span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span class="text-gray-600">Current Streak:</span>
+                    <span class="font-semibold text-green-600">${analysis.currentStreak} days</span>
+                </div>
+            </div>
+            
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <p class="text-orange-800 text-sm">
+                    <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+                    Your progress suggests you need a more rigorous schedule to stay on track.
+                </p>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button id="adjust-timetable-btn" class="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                    Adjust Timetable
+                </button>
+                <button id="dismiss-analysis-btn" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('adjust-timetable-btn').addEventListener('click', () => {
+        document.body.removeChild(modal);
+        generateRigorousTimetable(analysis, taskDescription);
+    });
+    
+    document.getElementById('dismiss-analysis-btn').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+}
+
+async function generateRigorousTimetable(analysis, taskDescription) {
+    const currentTimetable = getCurrentStandardTimetable();
+    
+    try {
+        const prompt = `You are an expert productivity coach. Based on the user's poor progress, create a MORE RIGOROUS timetable.
+
+CURRENT PROGRESS ANALYSIS:
+- Completion Rate: ${analysis.completionRate.toFixed(1)}%
+- Recent Missed Streak: ${analysis.recentMissedStreak} days
+- Total Missed Days: ${analysis.missedDays} out of ${analysis.totalDays} days
+
+CURRENT TIMETABLE:
+${currentTimetable.map(slot => `${slot.time} - ${slot.task}`).join('\n')}
+
+TASK FOCUS: "${taskDescription || 'General productivity improvement'}"
+
+Create a MORE RIGOROUS schedule that:
+1. Increases time allocation for the main task
+2. Reduces leisure/break time
+3. Adds accountability checkpoints
+4. Includes buffer time for catch-up
+5. Makes the schedule more structured and demanding
+
+Return ONLY a JSON object:
+{
+  "timetable": [{"time": "06:00 AM", "task": "Early Start Activity"}, ...],
+  "explanation": "Brief explanation of changes made"
+}`;
+        
+        showStandardTimetableMessage('AI is analyzing your progress and creating a more rigorous schedule...', 'info');
+        
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate rigorous timetable');
+        const result = await response.json();
+        
+        if (result.timetable && result.timetable.length > 0) {
+            renderStandardTimetable(result.timetable);
+            markStandardTimetableChanged();
+            
+            showStandardTimetableMessage(
+                `Timetable updated! ${result.explanation || 'Schedule has been made more rigorous based on your progress.'}`, 
+                'success'
+            );
+            
+            // Show adjustment summary
+            showAdjustmentSummary(analysis, result.explanation);
+        } else {
+            throw new Error('AI could not generate a valid rigorous timetable');
+        }
+    } catch (error) {
+        console.error('Rigorous timetable generation error:', error);
+        showStandardTimetableMessage('Error generating rigorous timetable: ' + error.message, 'error');
+    }
+}
+
+function showAdjustmentSummary(analysis, explanation) {
+    const summaryEl = document.createElement('div');
+    summaryEl.className = 'mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+    summaryEl.innerHTML = `
+        <div class="flex items-start space-x-3">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <i class="fa-solid fa-lightbulb text-blue-600 text-sm"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-800 mb-2">Schedule Adjustment Summary</h4>
+                <p class="text-blue-700 text-sm mb-3">${explanation}</p>
+                <div class="text-xs text-blue-600">
+                    <strong>Based on:</strong> ${analysis.completionRate.toFixed(1)}% completion rate, 
+                    ${analysis.recentMissedStreak} day missed streak
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const timetableSection = document.querySelector('.standard-timetable-section');
+    if (timetableSection) {
+        timetableSection.appendChild(summaryEl);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (summaryEl.parentNode) {
+                summaryEl.parentNode.removeChild(summaryEl);
+            }
+        }, 10000);
+    }
+}
+
+// Add button to trigger progress analysis
+function addProgressAnalysisButton() {
+    const aiSection = document.querySelector('#standard-show-ai-editor');
+    if (aiSection) {
+        const analysisBtn = document.createElement('button');
+        analysisBtn.id = 'analyze-progress-btn';
+        analysisBtn.className = 'ml-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm';
+        analysisBtn.innerHTML = '<i class="fa-solid fa-chart-line mr-2"></i>Analyze Progress';
+        
+        analysisBtn.addEventListener('click', () => {
+            const taskInput = prompt('What task/goal are you working on? (e.g., "coding", "studying", "fitness")');
+            if (taskInput) {
+                analyzeProgressAndAdjustTimetable(getCurrentUID(), taskInput);
+            }
+        });
+        
+        aiSection.appendChild(analysisBtn);
+    }
+}
+
+// Helper function to get current UID (you may need to adjust this based on your auth system)
+function getCurrentUID() {
+    return localStorage.getItem('currentUID') || currentUserId || 'default_user';
+}
+
+// Helper function to get current standard timetable
+function getCurrentStandardTimetable() {
+    const list = document.getElementById('standard-timetable-list');
+    if (!list) return [];
+    
+    const rows = Array.from(list.querySelectorAll('.standard-timetable-row'));
+    return rows.map(r => ({
+        time: r.querySelector('.time-input').value,
+        task: r.querySelector('.task-input').value
+    }));
 }
