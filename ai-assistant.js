@@ -34,13 +34,21 @@ class AIAssistant {
         
         const assistantBtn = document.createElement('button');
         assistantBtn.id = 'ai-assistant-btn';
-        assistantBtn.className = 'w-full flex items-center gap-3 p-3 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-all group';
+        assistantBtn.className = 'w-full flex items-center gap-3 p-4 text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 rounded-xl transition-all duration-300 group transform hover:scale-105 hover:shadow-lg border border-transparent hover:border-purple-200';
         assistantBtn.innerHTML = `
-            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-robot text-white text-sm"></i>
+            <div class="relative">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    <i class="fa-solid fa-robot text-white group-hover:animate-pulse"></i>
+                </div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse group-hover:animate-bounce"></div>
             </div>
-            <span class="font-medium">AI Assistant</span>
-            <div class="ml-auto w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div class="flex-1">
+                <span class="font-semibold text-sm block">AI Assistant</span>
+                <span class="text-xs text-gray-500 group-hover:text-purple-500 transition-colors">Always ready to help</span>
+            </div>
+            <div class="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                <i class="fa-solid fa-arrow-right text-purple-500"></i>
+            </div>
         `;
 
         // Add to sidebar
@@ -56,77 +64,92 @@ class AIAssistant {
     createAssistantModal() {
         const modal = document.createElement('div');
         modal.id = 'ai-assistant-modal';
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden';
         modal.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col mx-4">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col mx-4 overflow-hidden border border-gray-200 transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
                 <!-- Header -->
-                <div class="flex items-center justify-between p-6 border-b border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid fa-robot text-white"></i>
+                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                <i class="fa-solid fa-robot text-white text-lg"></i>
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
                         </div>
                         <div>
-                            <h3 class="text-xl font-bold text-gray-800">AI Assistant</h3>
-                            <p class="text-sm text-gray-500">Generate, summarize, rewrite & search</p>
+                            <h3 class="text-2xl font-bold text-gray-800 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">AI Assistant</h3>
+                            <p class="text-sm text-gray-600 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                Generate, summarize, rewrite & search
+                            </p>
                         </div>
                     </div>
-                    <button id="close-assistant" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i class="fa-solid fa-times text-gray-500"></i>
+                    <button id="close-assistant" class="p-3 hover:bg-gray-100 rounded-xl transition-all duration-300 transform hover:scale-110 hover:rotate-90 group">
+                        <i class="fa-solid fa-times text-gray-500 group-hover:text-gray-700 text-lg"></i>
                     </button>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="p-4 border-b border-gray-100">
-                    <div class="flex gap-2 flex-wrap">
-                        <button class="quick-action px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors" data-action="generate">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate
+                <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                    <div class="flex gap-3 flex-wrap justify-center">
+                        <button class="quick-action group px-4 py-3 bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-700 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2" data-action="generate">
+                            <i class="fa-solid fa-wand-magic-sparkles group-hover:animate-spin"></i>Generate
                         </button>
-                        <button class="quick-action px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors" data-action="summarize">
-                            <i class="fa-solid fa-compress mr-1"></i>Summarize
+                        <button class="quick-action group px-4 py-3 bg-gradient-to-r from-green-100 to-green-200 hover:from-green-200 hover:to-green-300 text-green-700 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2" data-action="summarize">
+                            <i class="fa-solid fa-compress group-hover:animate-pulse"></i>Summarize
                         </button>
-                        <button class="quick-action px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm hover:bg-orange-200 transition-colors" data-action="rewrite">
-                            <i class="fa-solid fa-pen mr-1"></i>Rewrite
+                        <button class="quick-action group px-4 py-3 bg-gradient-to-r from-orange-100 to-orange-200 hover:from-orange-200 hover:to-orange-300 text-orange-700 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2" data-action="rewrite">
+                            <i class="fa-solid fa-pen group-hover:animate-bounce"></i>Rewrite
                         </button>
-                        <button class="quick-action px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors" data-action="search">
-                            <i class="fa-solid fa-search mr-1"></i>Search Chats
+                        <button class="quick-action group px-4 py-3 bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-700 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2" data-action="search">
+                            <i class="fa-solid fa-search group-hover:animate-ping"></i>Search Chats
                         </button>
                     </div>
                 </div>
 
                 <!-- Chat Area -->
-                <div class="flex-1 flex flex-col overflow-hidden">
-                    <div id="assistant-chat" class="flex-1 overflow-y-auto p-4 space-y-4">
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-robot text-white text-sm"></i>
+                <div class="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-gray-50 via-white to-purple-50">
+                    <div id="assistant-chat" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100">
+                        <div class="flex items-start gap-4 animate-fade-in">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <i class="fa-solid fa-robot text-white"></i>
                             </div>
-                            <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4 max-w-[80%]">
-                                <p class="text-gray-800">Hi! I'm your AI Assistant. I can help you:</p>
-                                <ul class="mt-2 text-sm text-gray-600 space-y-1">
-                                    <li>• Generate content and ideas</li>
-                                    <li>• Summarize your plans and progress</li>
-                                    <li>• Rewrite and improve text</li>
-                                    <li>• Search through your workspace</li>
+                            <div class="bg-white rounded-3xl rounded-tl-lg p-6 max-w-[85%] shadow-lg border border-gray-100 relative">
+                                <div class="absolute -left-2 top-4 w-4 h-4 bg-white border-l border-t border-gray-100 transform rotate-45"></div>
+                                <p class="text-gray-800 leading-relaxed">Hi! I'm your AI Assistant. I can help you:</p>
+                                <ul class="mt-4 text-sm text-gray-600 space-y-2">
+                                    <li class="flex items-center gap-3"><span class="w-2 h-2 bg-blue-400 rounded-full"></span>Generate content and ideas</li>
+                                    <li class="flex items-center gap-3"><span class="w-2 h-2 bg-green-400 rounded-full"></span>Summarize your plans and progress</li>
+                                    <li class="flex items-center gap-3"><span class="w-2 h-2 bg-orange-400 rounded-full"></span>Rewrite and improve text</li>
+                                    <li class="flex items-center gap-3"><span class="w-2 h-2 bg-purple-400 rounded-full"></span>Search through your workspace</li>
                                 </ul>
-                                <p class="mt-2 text-sm text-amber-600">
-                                    <i class="fa-solid fa-info-circle mr-1"></i>
-                                    I can't edit your plans directly - please go to the specific chat for changes.
-                                </p>
+                                <div class="mt-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
+                                    <p class="text-sm text-amber-700 flex items-center gap-2">
+                                        <i class="fa-solid fa-info-circle text-amber-500"></i>
+                                        I can't edit your plans directly - please go to the specific chat for changes.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Input Area -->
-                    <div class="p-4 border-t border-gray-200">
-                        <div class="flex gap-3">
-                            <textarea id="assistant-input" 
-                                placeholder="Ask me anything about your plans, or request content generation..." 
-                                class="flex-1 resize-none border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                rows="2"></textarea>
+                    <div class="p-6 border-t border-gray-200 bg-white">
+                        <div class="flex gap-4 items-end">
+                            <div class="flex-1 relative">
+                                <textarea id="assistant-input" 
+                                    placeholder="Ask me anything about your plans, or request content generation..." 
+                                    class="w-full resize-none border-2 border-gray-200 hover:border-purple-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 rounded-2xl p-4 pr-12 transition-all duration-300 bg-gray-50 focus:bg-white shadow-inner"
+                                    rows="2"></textarea>
+                                <div class="absolute right-3 bottom-3 text-xs text-gray-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-keyboard text-xs"></i>
+                                    <span>Enter to send</span>
+                                </div>
+                            </div>
                             <button id="send-assistant-message" 
-                                class="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-paper-plane"></i>
-                                Send
+                                class="px-8 py-4 bg-gradient-to-r from-purple-500 via-indigo-600 to-blue-600 hover:from-purple-600 hover:via-indigo-700 hover:to-blue-700 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center gap-3 font-semibold group">
+                                <i class="fa-solid fa-paper-plane group-hover:animate-bounce"></i>
+                                <span>Send</span>
                             </button>
                         </div>
                     </div>
@@ -189,13 +212,33 @@ class AIAssistant {
     }
 
     openAssistant() {
-        document.getElementById('ai-assistant-modal').classList.remove('hidden');
+        const modal = document.getElementById('ai-assistant-modal');
+        const modalContent = document.getElementById('modal-content');
+        
+        modal.classList.remove('hidden');
+        
+        // Animate modal entrance
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        
         this.isOpen = true;
         document.getElementById('assistant-input').focus();
     }
 
     closeAssistant() {
-        document.getElementById('ai-assistant-modal').classList.add('hidden');
+        const modal = document.getElementById('ai-assistant-modal');
+        const modalContent = document.getElementById('modal-content');
+        
+        // Animate modal exit
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+        
         this.isOpen = false;
     }
 
@@ -296,30 +339,39 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
     addMessage(content, sender) {
         const chatArea = document.getElementById('assistant-chat');
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start gap-3';
+        messageDiv.className = 'flex items-start gap-4 animate-fade-in opacity-0';
 
         if (sender === 'user') {
             messageDiv.innerHTML = `
                 <div class="flex-1"></div>
-                <div class="bg-indigo-600 text-white rounded-2xl rounded-tr-sm p-4 max-w-[80%]">
-                    <p>${content}</p>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-3xl rounded-tr-lg p-4 max-w-[85%] shadow-lg relative">
+                    <div class="absolute -right-2 top-4 w-4 h-4 bg-gradient-to-r from-indigo-500 to-purple-600 border-r border-t transform rotate-45"></div>
+                    <p class="leading-relaxed">${content}</p>
                 </div>
-                <div class="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-user text-gray-600 text-sm"></i>
+                <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <i class="fa-solid fa-user text-white"></i>
                 </div>
             `;
         } else {
             messageDiv.innerHTML = `
-                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-robot text-white text-sm"></i>
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <i class="fa-solid fa-robot text-white"></i>
                 </div>
-                <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4 max-w-[80%]">
-                    <p class="text-gray-800">${content}</p>
+                <div class="bg-white rounded-3xl rounded-tl-lg p-4 max-w-[85%] shadow-lg border border-gray-100 relative">
+                    <div class="absolute -left-2 top-4 w-4 h-4 bg-white border-l border-t border-gray-100 transform rotate-45"></div>
+                    <p class="text-gray-800 leading-relaxed">${content}</p>
                 </div>
             `;
         }
 
         chatArea.appendChild(messageDiv);
+        
+        // Animate message appearance
+        setTimeout(() => {
+            messageDiv.classList.remove('opacity-0');
+            messageDiv.classList.add('opacity-100');
+        }, 10);
+        
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
@@ -327,16 +379,20 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
         const chatArea = document.getElementById('assistant-chat');
         const typingDiv = document.createElement('div');
         typingDiv.id = 'typing-indicator';
-        typingDiv.className = 'flex items-start gap-3';
+        typingDiv.className = 'flex items-start gap-4 animate-fade-in';
         typingDiv.innerHTML = `
-            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-robot text-white text-sm"></i>
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <i class="fa-solid fa-robot text-white"></i>
             </div>
-            <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
-                <div class="flex gap-1">
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="bg-white rounded-3xl rounded-tl-lg p-6 shadow-lg border border-gray-100 relative">
+                <div class="absolute -left-2 top-4 w-4 h-4 bg-white border-l border-t border-gray-100 transform rotate-45"></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-500 text-sm mr-2">AI is thinking</span>
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
                 </div>
             </div>
         `;
