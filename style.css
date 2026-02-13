@@ -40,39 +40,81 @@ nav {
 
 .gradient-border {
     background: linear-gradient(white, white) padding-box,
-                linear-gradient(135deg, #667eea, #764ba2) border-box;
+        linear-gradient(135deg, #667eea, #764ba2) border-box;
     border: 2px solid transparent;
 }
 
 /* --- ANIMATIONS --- */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes slideInUp {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px) translateX(0px); }
-    50% { transform: translateY(-30px) translateX(20px); }
+
+    0%,
+    100% {
+        transform: translateY(0px) translateX(0px);
+    }
+
+    50% {
+        transform: translateY(-30px) translateX(20px);
+    }
 }
 
 @keyframes glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
-    50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
+    }
 }
 
 .animate-fade-in {
@@ -114,15 +156,18 @@ aside#sidebar-collapsed {
 #history-list::-webkit-scrollbar {
     width: 6px;
 }
+
 #history-list::-webkit-scrollbar-track {
     background: rgba(102, 126, 234, 0.05);
     border-radius: 10px;
 }
+
 #history-list::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
     transition: all 0.3s ease;
 }
+
 #history-list::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
@@ -229,9 +274,10 @@ aside#sidebar-collapsed {
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
     animation: float 8s ease-in-out infinite;
 }
+
 /* --- TIMETABLE STYLES --- */
 .timetable-row {
     display: flex;
@@ -428,12 +474,12 @@ aside#sidebar-collapsed {
     justify-content: center;
     font-size: 0.875rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .note-actions button:hover {
     transform: scale(1.15) rotate(-5deg);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .note-actions .delete-note-btn {
@@ -444,14 +490,16 @@ aside#sidebar-collapsed {
     background: rgba(254, 226, 226, 0.9);
     border-color: #fca5a5;
 }
+
 /* --- CONTEXT MENU STYLES --- */
 @keyframes contextMenuFadeIn {
-    from { 
-        opacity: 0; 
+    from {
+        opacity: 0;
         transform: scale(0.95) translateY(-8px);
     }
-    to { 
-        opacity: 1; 
+
+    to {
+        opacity: 1;
         transform: scale(1) translateY(0);
     }
 }
@@ -527,7 +575,7 @@ aside#sidebar-collapsed {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     transition: left 0.5s;
 }
 
@@ -627,8 +675,13 @@ aside#sidebar-collapsed {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .pulse-dot {
@@ -640,8 +693,17 @@ aside#sidebar-collapsed {
 }
 
 @keyframes pulse-scale {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
 }
 
 /* --- RESPONSIVE DESIGN --- */
@@ -650,19 +712,20 @@ aside#sidebar-collapsed {
         padding: 1.5rem;
         border-radius: 1rem;
     }
-    
+
     .milestone-card {
         padding: 1.5rem;
         border-radius: 1rem;
     }
-    
+
     .note-card {
         padding: 1.5rem;
         border-radius: 1rem;
         min-height: 180px;
     }
-    
-    .btn-primary, .btn-secondary {
+
+    .btn-primary,
+    .btn-secondary {
         padding: 0.875rem 1.25rem;
         font-size: 0.9rem;
     }
@@ -713,13 +776,13 @@ aside#sidebar-collapsed {
 }
 
 /* Sidebar Header */
-.dark aside#sidebar > div:first-child {
+.dark aside#sidebar>div:first-child {
     background: linear-gradient(135deg, #2d1b69 0%, #3730a3 100%) !important;
     border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
 /* Sidebar Footer */
-.dark aside#sidebar > div:last-child {
+.dark aside#sidebar>div:last-child {
     background: linear-gradient(135deg, #2d1b69 0%, #3730a3 100%) !important;
     border-top: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
@@ -744,7 +807,7 @@ aside#sidebar-collapsed {
 }
 
 /* History list items */
-.dark #history-list > * {
+.dark #history-list>* {
     color: #cbd5e1 !important;
 }
 
