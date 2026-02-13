@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  const { prompt } = req.body;
+  const { prompt, requireJson = true } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -50,8 +50,13 @@ export default async function handler(req, res) {
       }
 
       const rawText = data.candidates[0].content.parts[0].text;
-      const cleanJson = rawText.replace(/```json|```/g, '').trim();
-      plan = JSON.parse(cleanJson);
+
+      if (requireJson) {
+        const cleanJson = rawText.replace(/```json|```/g, '').trim();
+        plan = JSON.parse(cleanJson);
+      } else {
+        plan = { response: rawText };
+      }
       success = true;
     } catch (error) {
       console.error(`Failed with ${model}:`, error.message);

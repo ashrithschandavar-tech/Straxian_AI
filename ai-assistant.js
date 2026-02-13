@@ -31,7 +31,7 @@ class AIAssistant {
     createAssistantButton() {
         // Check if button already exists
         if (document.getElementById('ai-assistant-btn')) return;
-        
+
         const assistantBtn = document.createElement('button');
         assistantBtn.id = 'ai-assistant-btn';
         assistantBtn.className = 'w-full flex items-center gap-3 p-4 text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 rounded-xl transition-all duration-300 group transform hover:scale-105 hover:shadow-lg border border-transparent hover:border-purple-200';
@@ -166,7 +166,7 @@ class AIAssistant {
         const modal = document.getElementById('ai-assistant-modal');
         const sendBtn = document.getElementById('send-assistant-message');
         const input = document.getElementById('assistant-input');
-        
+
         if (!assistantBtn || !closeBtn || !modal || !sendBtn || !input) {
             console.log('AI Assistant elements not found');
             return;
@@ -214,15 +214,15 @@ class AIAssistant {
     openAssistant() {
         const modal = document.getElementById('ai-assistant-modal');
         const modalContent = document.getElementById('modal-content');
-        
+
         modal.classList.remove('hidden');
-        
+
         // Animate modal entrance
         setTimeout(() => {
             modalContent.classList.remove('scale-95', 'opacity-0');
             modalContent.classList.add('scale-100', 'opacity-100');
         }, 10);
-        
+
         this.isOpen = true;
         document.getElementById('assistant-input').focus();
     }
@@ -230,15 +230,15 @@ class AIAssistant {
     closeAssistant() {
         const modal = document.getElementById('ai-assistant-modal');
         const modalContent = document.getElementById('modal-content');
-        
+
         // Animate modal exit
         modalContent.classList.remove('scale-100', 'opacity-100');
         modalContent.classList.add('scale-95', 'opacity-0');
-        
+
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
-        
+
         this.isOpen = false;
     }
 
@@ -275,7 +275,7 @@ class AIAssistant {
         try {
             // Get user's chat data for context
             const chatContext = await this.getUserChatContext();
-            
+
             const prompt = `You are an AI assistant that helps with content generation, summarization, rewriting, and searching. You have access to the user's chat history and plans.
 
 User's Chat Context:
@@ -288,14 +288,14 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt })
+                body: JSON.stringify({ prompt, requireJson: false })
             });
 
             if (!response.ok) throw new Error('Failed to get response');
             const result = await response.json();
 
             this.hideTyping();
-            
+
             // Handle different response formats
             let responseText = "I'm here to help! What would you like me to do?";
             if (typeof result === 'string') {
@@ -308,7 +308,7 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
                 // Handle plan-like responses
                 responseText = `${result.title || 'Generated Content'}\n\n${result.description || 'Content generated successfully.'}`;
             }
-            
+
             this.addMessage(responseText, 'assistant');
 
         } catch (error) {
@@ -365,13 +365,13 @@ Provide a helpful response. If the user asks to edit, modify, or change anything
         }
 
         chatArea.appendChild(messageDiv);
-        
+
         // Animate message appearance
         setTimeout(() => {
             messageDiv.classList.remove('opacity-0');
             messageDiv.classList.add('opacity-100');
         }, 10);
-        
+
         chatArea.scrollTop = chatArea.scrollHeight;
     }
 
